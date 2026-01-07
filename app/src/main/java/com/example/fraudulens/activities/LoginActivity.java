@@ -57,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
             btnLogin.setEnabled(true);
 
             if (success) {
-                FirebaseHelper.setLoggedIn(this, email);
+                // setLoggedIn is already called inside FirebaseHelper.login()
                 startMain();
             } else {
                 Toast.makeText(this,

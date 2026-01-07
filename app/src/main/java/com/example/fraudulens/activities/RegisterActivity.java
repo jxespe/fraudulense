@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
-import com.example.fraudulens.utils.PasswordUtil;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -53,10 +52,8 @@ public class RegisterActivity extends AppCompatActivity {
 
         btnCreate.setEnabled(false);
 
-        // ✅ HASH PASSWORD
-        String passwordHash = PasswordUtil.hashPassword(pass);
-
-        FirebaseHelper.register(name, email, passwordHash, success ->
+        // Pass plain password - FirebaseHelper.register() will hash it
+        FirebaseHelper.register(name, email, pass, success ->
                 runOnUiThread(() -> {
                     btnCreate.setEnabled(true);
 

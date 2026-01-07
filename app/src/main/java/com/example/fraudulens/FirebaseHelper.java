@@ -60,10 +60,14 @@ public class FirebaseHelper {
             String password,
             SimpleCallback<Boolean> cb
     ) {
-        String hash = PasswordUtil.hashPassword(password);
+        // Normalize email to lowercase (must match login normalization)
+        final String normalizedEmail = email.trim().toLowerCase();
+        // Trim password to ensure consistency
+        final String trimmedPassword = password.trim();
+        String hash = PasswordUtil.hashPassword(trimmedPassword);
 
         db.collection("users")
-                .whereEqualTo("email", email)
+                .whereEqualTo("email", normalizedEmail)
                 .limit(1)
                 .get()
                 .addOnSuccessListener(snapshot -> {
@@ -74,7 +78,7 @@ public class FirebaseHelper {
 
                     Map<String, Object> user = new HashMap<>();
                     user.put("name", name);
-                    user.put("email", email);
+                    user.put("email", normalizedEmail);
                     user.put("passwordHash", hash);
                     user.put("createdAt", FieldValue.serverTimestamp());
 
@@ -100,7 +104,9 @@ public class FirebaseHelper {
             SimpleCallback<Boolean> cb
     ) {
         final String normalizedEmail = email.trim().toLowerCase();
-        final String hash = PasswordUtil.hashPassword(password);
+        // Trim password to ensure consistency with registration
+        final String trimmedPassword = password.trim();
+        final String hash = PasswordUtil.hashPassword(trimmedPassword);
 
         Log.d("LOGIN_DEBUG", "Email input: " + normalizedEmail);
         Log.d("LOGIN_DEBUG", "Password hash input: " + hash);

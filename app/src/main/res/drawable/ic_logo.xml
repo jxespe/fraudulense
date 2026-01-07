@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="128dp" android:height="128dp" android:viewportWidth="24" android:viewportHeight="24">
+    <!-- Simple shield logo placeholder -->
+    <path android:fillColor="@color/surface" android:pathData="M12,1L3,5v6c0,5 3.7,10.3 9,12 5.3-1.7 9-7 9-12V5l-9-4z"/>
+    <path android:fillColor="@color/primaryColor" android:pathData="M12 3.2 18 6v5.8c0 3.9-2.6 7.7-6 8.9-3.4-1.2-6-5-6-8.9V6z"/>
+</vector>

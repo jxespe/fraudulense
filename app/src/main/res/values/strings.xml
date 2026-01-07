@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FrauduLens</string>
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Secure your conversations — report suspicious messages</string>
+    <string name="email_hint">Phone or Email</string>
+    <string name="password_hint">Password</string>
+    <string name="send_otp">Send OTP</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="scan_now">Scan Message</string>
+    <string name="view_reports">Community Reports</string>
+    <string name="profile">Profile</string>
+    <string name="detect">Detect Scam</string>
+    <string name="report">Report</string>
+    <string name="no_reports">No reports yet</string>
+    <string name="result_safe">Looks Safe</string>
+    <string name="result_scam">Potential Scam</string>
+    <string name="user_profile">User Profile</string>
+    <string name="like_post">Like this post</string>
+</resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- FrauduLens main theme -->
+    <color name="primaryColor">#0B3D91</color>
+    <color name="primaryVariant">#042A66</color>
+    <color name="secondaryColor">#00A86B</color>
+    <color name="accentColor">#FFB300</color>
+
+    <!-- Backgrounds -->
+    <color name="bgStart">#06327A</color>
+    <color name="bgEnd">#3FA9F5</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Text -->
+    <color name="textPrimary">#0B2140</color>
+    <color name="mutedText">#64748B</color>
+    <color name="primaryText">#0B2140</color>
+
+    <!-- System-like theme placeholders -->
+    <color name="md_theme_primary">#0B3D91</color>
+    <color name="md_theme_surface">#FFFFFF</color>
+    <color name="text_secondary">#7A7A7A</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Status -->
+    <color name="danger">#D32F2F</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="secondaryText">#6B7280</color>
+    <color name="hintText">#9CA3AF</color>
+
+
+</resources>

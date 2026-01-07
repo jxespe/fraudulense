@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface"
+    tools:context=".activities.DetailsActivity">
+
+    <!-- Gradient accent header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/gradient_header">
+
+        <TextView
+            android:id="@+id/textHeaderTitle"
+            android:text="Report Details"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:id="@+id/textHeaderSubtitle"
+            android:text="Phishing SMS report summary"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            android:alpha="0.85"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Scrollable content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="@color/bgEnd">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Card with teal accent border -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardReportDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/secondaryColor">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/tvDetailTarget"
+                        android:text="Target: 0917-XXX-XXXX"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvDetailSummary"
+                        android:text="Summary: Received phishing SMS with fake bank login page."
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvDetailTime"
+                        android:text="Reported: 2 hours ago"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/mutedText"
+                        android:textSize="13sp" />
+
+                    <!-- Primary button aligned to the right -->
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:gravity="end"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnResolve"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mark Resolved"
+                            android:textAllCaps="false"
+                            android:textColor="@color/surface"
+                            android:backgroundTint="@color/secondaryColor"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

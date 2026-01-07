@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "838199002873",
+    "project_id": "fraudulense",
+    "storage_bucket": "fraudulense.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838199002873:android:5adbeea45cf9b8575fc428",
+        "android_client_info": {
+          "package_name": "com.example.fraudulens"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnBT93pmhUQ9gW1ohWEHzTSjfcp0lUzPY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838199002873:android:06c52fcde580d6f85fc428",
+        "android_client_info": {
+          "package_name": "com.example.fraudulense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnBT93pmhUQ9gW1ohWEHzTSjfcp0lUzPY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

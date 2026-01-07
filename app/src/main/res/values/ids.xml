@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="etPhone" type="id" />
+    <item name="btnContinue" type="id" />
+    <item name="etOtp" type="id" />
+    <item name="btnVerify" type="id" />
+    <item name="bottomNav" type="id" />
+    <item name="container" type="id" />
+    <item name="nav_home" type="id" />
+    <item name="nav_search" type="id" />
+    <item name="nav_report" type="id" />
+    <item name="nav_community" type="id" />
+    <item name="nav_profile" type="id" />
+    <item name="tvAlerts" type="id" />
+    <item name="etQuery" type="id" />
+    <item name="btnCheck" type="id" />
+    <item name="tvResult" type="id" />
+    <item name="etNumber" type="id" />
+    <item name="etSummary" type="id" />
+    <item name="btnSubmit" type="id" />
+    <item name="rvCommunity" type="id" />
+    <item name="btnSignOut" type="id" />
+    <item name="tvTarget" type="id" />
+    <item name="tvSummary" type="id" />
+    <item name="tvStatus" type="id" />
+    <item name="tvName" type="id" />
+    <item name="tvEmail" type="id" />
+    <item name="recyclerCommunity" type="id" />
+</resources>

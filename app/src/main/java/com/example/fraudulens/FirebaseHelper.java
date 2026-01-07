@@ -66,12 +66,19 @@ public class FirebaseHelper {
         final String trimmedPassword = password.trim();
         String hash = PasswordUtil.hashPassword(trimmedPassword);
 
+        Log.d("REGISTER_DEBUG", "=== REGISTRATION ATTEMPT ===");
+        Log.d("REGISTER_DEBUG", "Original email: " + email);
+        Log.d("REGISTER_DEBUG", "Normalized email: " + normalizedEmail);
+        Log.d("REGISTER_DEBUG", "Password length: " + trimmedPassword.length());
+        Log.d("REGISTER_DEBUG", "Password hash: " + hash);
+
         db.collection("users")
                 .whereEqualTo("email", normalizedEmail)
                 .limit(1)
                 .get()
                 .addOnSuccessListener(snapshot -> {
                     if (!snapshot.isEmpty()) {
+                        Log.d("REGISTER_DEBUG", "Email already exists: " + normalizedEmail);
                         cb.onComplete(false);
                         return;
                     }
@@ -82,16 +89,23 @@ public class FirebaseHelper {
                     user.put("passwordHash", hash);
                     user.put("createdAt", FieldValue.serverTimestamp());
 
+                    Log.d("REGISTER_DEBUG", "Creating user with email: " + normalizedEmail);
+
                     db.collection("users")
                             .add(user)
-                            .addOnSuccessListener(d -> cb.onComplete(true))
+                            .addOnSuccessListener(d -> {
+                                Log.d("REGISTER_DEBUG", "Registration successful! Document ID: " + d.getId());
+                                cb.onComplete(true);
+                            })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "register failed", e);
+                                e.printStackTrace();
                                 cb.onComplete(false);
                             });
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "email check failed", e);
+                    e.printStackTrace();
                     cb.onComplete(false);
                 });
     }
@@ -104,41 +118,93 @@ public class FirebaseHelper {
             SimpleCallback<Boolean> cb
     ) {
         final String normalizedEmail = email.trim().toLowerCase();
+        final String originalEmail = email.trim(); // For legacy accounts
         // Trim password to ensure consistency with registration
         final String trimmedPassword = password.trim();
         final String hash = PasswordUtil.hashPassword(trimmedPassword);
 
-        Log.d("LOGIN_DEBUG", "Email input: " + normalizedEmail);
-        Log.d("LOGIN_DEBUG", "Password hash input: " + hash);
+        Log.d("LOGIN_DEBUG", "=== LOGIN ATTEMPT ===");
+        Log.d("LOGIN_DEBUG", "Original email: " + email);
+        Log.d("LOGIN_DEBUG", "Normalized email: " + normalizedEmail);
+        Log.d("LOGIN_DEBUG", "Password length: " + trimmedPassword.length());
+        Log.d("LOGIN_DEBUG", "Password hash: " + hash);
 
+        // Try normalized email first (for accounts created after fix)
+        attemptLoginWithEmail(ctx, normalizedEmail, originalEmail, hash, cb, true);
+    }
+
+    private static void attemptLoginWithEmail(
+            Context ctx,
+            String searchEmail,
+            String fallbackEmail,
+            String hash,
+            SimpleCallback<Boolean> cb,
+            boolean tryFallback
+    ) {
         db.collection("users")
-                .whereEqualTo("email", normalizedEmail)
+                .whereEqualTo("email", searchEmail)
                 .limit(1)
                 .get()
                 .addOnSuccessListener(snap -> {
 
                     if (snap.isEmpty()) {
-                        Log.d("LOGIN_DEBUG", "No user found");
-                        cb.onComplete(false);
+                        Log.d("LOGIN_DEBUG", "No user found with email: " + searchEmail);
+                        // Try fallback email if different from search email (for legacy accounts)
+                        if (tryFallback && !searchEmail.equals(fallbackEmail)) {
+                            Log.d("LOGIN_DEBUG", "Trying fallback with original email format: " + fallbackEmail);
+                            attemptLoginWithEmail(ctx, fallbackEmail, fallbackEmail, hash, cb, false);
+                        } else {
+                            cb.onComplete(false);
+                        }
                         return;
                     }
 
                     DocumentSnapshot doc = snap.getDocuments().get(0);
                     String storedHash = doc.getString("passwordHash");
+                    String storedEmail = doc.getString("email");
 
+                    Log.d("LOGIN_DEBUG", "User found!");
+                    Log.d("LOGIN_DEBUG", "Stored email: " + storedEmail);
                     Log.d("LOGIN_DEBUG", "Stored hash: " + storedHash);
+                    Log.d("LOGIN_DEBUG", "Stored hash length: " + (storedHash != null ? storedHash.length() : "null"));
+                    Log.d("LOGIN_DEBUG", "Computed hash length: " + hash.length());
+
+                    if (storedHash == null) {
+                        Log.e("LOGIN_DEBUG", "ERROR: passwordHash field is null in database!");
+                        cb.onComplete(false);
+                        return;
+                    }
 
                     boolean match = hash.equals(storedHash);
                     Log.d("LOGIN_DEBUG", "Hash match: " + match);
+                    
+                    // If hash doesn't match and this might be a legacy account with double-hashed password,
+                    // try double-hashing the input password (for backward compatibility)
+                    if (!match && tryFallback) {
+                        Log.d("LOGIN_DEBUG", "Trying legacy double-hash check...");
+                        String doubleHash = PasswordUtil.hashPassword(hash);
+                        boolean legacyMatch = doubleHash.equals(storedHash);
+                        Log.d("LOGIN_DEBUG", "Legacy hash match: " + legacyMatch);
+                        if (legacyMatch) {
+                            Log.d("LOGIN_DEBUG", "Login successful with legacy account!");
+                            setLoggedIn(ctx, storedEmail.toLowerCase()); // Normalize for future use
+                            cb.onComplete(true);
+                            return;
+                        }
+                    }
 
                     if (match) {
-                        setLoggedIn(ctx, normalizedEmail); // ✅ SAFE
+                        Log.d("LOGIN_DEBUG", "Login successful!");
+                        setLoggedIn(ctx, storedEmail.toLowerCase()); // Normalize for consistency
+                    } else {
+                        Log.d("LOGIN_DEBUG", "Login failed - hash mismatch");
                     }
 
                     cb.onComplete(match);
                 })
                 .addOnFailureListener(e -> {
                     Log.e("LOGIN_DEBUG", "Login query failed", e);
+                    e.printStackTrace();
                     cb.onComplete(false);
                 });
     }

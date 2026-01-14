@@ -7,14 +7,14 @@
 
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@drawable/ic_logo"
+        android:layout_width="340dp"
+        android:layout_height="220dp"
+        android:src="@drawable/flbg"
+        android:scaleType="fitXY"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/tvTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="120dp"/>
+        android:layout_marginTop="200dp"/>
 
     <TextView
         android:id="@+id/tvTitle"
@@ -22,35 +22,42 @@
         android:layout_height="wrap_content"
         android:text="FrauduLens"
         android:textColor="@color/surface"
-        android:textSize="28sp"
+        android:textSize="36sp"
         android:textStyle="bold"
         android:letterSpacing="0.02"
+        android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/imgLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="24dp"/>
 
     <TextView
         android:id="@+id/tvSubtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Your smart fraud detector"
+        android:text="Clear vision, Secure decisions"
         android:textColor="@color/surface"
-        android:textSize="14sp"
+        android:textSize="16sp"
+        android:alpha="0.9"
+        android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="12dp"/>
 
     <ProgressBar
-        android:id="@+id/progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:indeterminateTint="@color/accentColor"
+        android:id="@+id/progressBar"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="200dp"
+        android:layout_height="4dp"
+        android:progressTint="@color/surface"
+        android:progressBackgroundTint="@color/surface"
+        android:alpha="0.3"
+        android:progress="30"
+        android:max="100"
         app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="36dp"/>
+        android:layout_marginTop="80dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

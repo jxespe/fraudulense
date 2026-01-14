@@ -1,33 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- FrauduLens main theme -->
-    <color name="primaryColor">#0B3D91</color>
-    <color name="primaryVariant">#042A66</color>
-    <color name="secondaryColor">#00A86B</color>
-    <color name="accentColor">#FFB300</color>
+    <!-- New Color Palette -->
+    <color name="colorGray">#647283</color>
+    <color name="colorLightPurple">#ECE6F0</color>
+    <color name="colorBlue">#1BB8F6</color>
+    <color name="colorPurple">#2F08F1</color>
+    <color name="colorDarkPurple">#271589</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 
-    <!-- Backgrounds -->
-    <color name="bgStart">#06327A</color>
-    <color name="bgEnd">#3FA9F5</color>
+    <!-- FrauduLens main theme -->
+    <color name="primaryColor">#2F08F1</color>
+    <color name="primaryVariant">#271589</color>
+    <color name="secondaryColor">#1BB8F6</color>
+    <color name="accentColor">#1BB8F6</color>
+
+    <!-- Backgrounds - New gradient theme -->
+    <color name="bgStart">#271589</color>
+    <color name="bgEnd">#2F08F1</color>
+    <color name="bgCenter">#1BB8F6</color>
     <color name="surface">#FFFFFF</color>
 
     <!-- Text -->
-    <color name="textPrimary">#0B2140</color>
-    <color name="mutedText">#64748B</color>
-    <color name="primaryText">#0B2140</color>
+    <color name="textPrimary">#000000</color>
+    <color name="mutedText">#647283</color>
+    <color name="primaryText">#000000</color>
 
     <!-- System-like theme placeholders -->
-    <color name="md_theme_primary">#0B3D91</color>
+    <color name="md_theme_primary">#2F08F1</color>
     <color name="md_theme_surface">#FFFFFF</color>
-    <color name="text_secondary">#7A7A7A</color>
-    <color name="white">#FFFFFF</color>
+    <color name="text_secondary">#647283</color>
 
     <!-- Status -->
     <color name="danger">#D32F2F</color>
     <color name="transparent">#00000000</color>
 
-    <color name="secondaryText">#6B7280</color>
-    <color name="hintText">#9CA3AF</color>
+    <color name="secondaryText">#647283</color>
+    <color name="hintText">#647283</color>
 
+    <!-- Daily Report Color -->
+    <color name="dailyReportBg">#ECE6F0</color>
 
 </resources>

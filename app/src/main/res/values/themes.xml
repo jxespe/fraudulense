@@ -8,6 +8,7 @@
         <item name="android:navigationBarColor">@color/primaryVariant</item>
         <item name="materialCardViewStyle">@style/Widget.MaterialComponents.CardView</item>
         <item name="android:windowBackground">@drawable/gradient_bg</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
     <style name="FrauduLens.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
@@ -17,5 +18,22 @@
     <style name="FrauduLens.Toolbar.Title">
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/surface</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- Font Styles -->
+    <!-- Base League Spartan text appearance -->
+    <style name="TextAppearance.LeagueSpartan" parent="@android:style/TextAppearance">
+        <item name="android:fontFamily">@font/league_spartan</item>
+    </style>
+
+    <!-- Bold League Spartan text appearance -->
+    <style name="TextAppearance.LeagueSpartan.Bold" parent="@style/TextAppearance.LeagueSpartan">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Roboto text appearance -->
+    <style name="TextAppearance.Roboto" parent="@android:style/TextAppearance">
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 </resources>

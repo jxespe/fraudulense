@@ -60,6 +60,17 @@ public class FirebaseHelper {
             String password,
             SimpleCallback<Boolean> cb
     ) {
+        register(name, null, email, password, cb);
+    }
+
+    /** REGISTER with username */
+    public static void register(
+            String name,
+            String username,
+            String email,
+            String password,
+            SimpleCallback<Boolean> cb
+    ) {
         // Normalize email to lowercase (must match login normalization)
         final String normalizedEmail = email.trim().toLowerCase();
         // Trim password to ensure consistency
@@ -67,41 +78,50 @@ public class FirebaseHelper {
         String hash = PasswordUtil.hashPassword(trimmedPassword);
 
         Log.d("REGISTER_DEBUG", "=== REGISTRATION ATTEMPT ===");
+        Log.d("REGISTER_DEBUG", "Name: " + name);
+        Log.d("REGISTER_DEBUG", "Username: " + username);
         Log.d("REGISTER_DEBUG", "Original email: " + email);
         Log.d("REGISTER_DEBUG", "Normalized email: " + normalizedEmail);
         Log.d("REGISTER_DEBUG", "Password length: " + trimmedPassword.length());
         Log.d("REGISTER_DEBUG", "Password hash: " + hash);
 
+        // Check if email already exists
         db.collection("users")
                 .whereEqualTo("email", normalizedEmail)
                 .limit(1)
                 .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.isEmpty()) {
+                .addOnSuccessListener(emailSnapshot -> {
+                    if (!emailSnapshot.isEmpty()) {
                         Log.d("REGISTER_DEBUG", "Email already exists: " + normalizedEmail);
                         cb.onComplete(false);
                         return;
                     }
 
-                    Map<String, Object> user = new HashMap<>();
-                    user.put("name", name);
-                    user.put("email", normalizedEmail);
-                    user.put("passwordHash", hash);
-                    user.put("createdAt", FieldValue.serverTimestamp());
-
-                    Log.d("REGISTER_DEBUG", "Creating user with email: " + normalizedEmail);
-
-                    db.collection("users")
-                            .add(user)
-                            .addOnSuccessListener(d -> {
-                                Log.d("REGISTER_DEBUG", "Registration successful! Document ID: " + d.getId());
-                                cb.onComplete(true);
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "register failed", e);
-                                e.printStackTrace();
-                                cb.onComplete(false);
-                            });
+                    // If username is provided, check if it's already taken
+                    if (username != null && !username.trim().isEmpty()) {
+                        final String trimmedUsername = username.trim();
+                        db.collection("users")
+                                .whereEqualTo("username", trimmedUsername)
+                                .limit(1)
+                                .get()
+                                .addOnSuccessListener(usernameSnapshot -> {
+                                    if (!usernameSnapshot.isEmpty()) {
+                                        Log.d("REGISTER_DEBUG", "Username already exists: " + trimmedUsername);
+                                        cb.onComplete(false);
+                                        return;
+                                    }
+                                    // Username is available, proceed with registration
+                                    createUser(name, trimmedUsername, normalizedEmail, hash, cb);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "username check failed", e);
+                                    e.printStackTrace();
+                                    cb.onComplete(false);
+                                });
+                    } else {
+                        // No username provided, proceed with registration
+                        createUser(name, null, normalizedEmail, hash, cb);
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "email check failed", e);
@@ -110,27 +130,107 @@ public class FirebaseHelper {
                 });
     }
 
-    /** LOGIN */
+    /** Helper method to create user document */
+    private static void createUser(
+            String name,
+            String username,
+            String normalizedEmail,
+            String hash,
+            SimpleCallback<Boolean> cb
+    ) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("name", name);
+        if (username != null && !username.isEmpty()) {
+            user.put("username", username);
+        }
+        user.put("email", normalizedEmail);
+        user.put("passwordHash", hash);
+        user.put("createdAt", FieldValue.serverTimestamp());
+        user.put("isVerified", false);
+
+        Log.d("REGISTER_DEBUG", "Creating user with email: " + normalizedEmail + ", username: " + username);
+
+        db.collection("users")
+                .add(user)
+                .addOnSuccessListener(d -> {
+                    Log.d("REGISTER_DEBUG", "Registration successful! Document ID: " + d.getId());
+                    cb.onComplete(true);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "register failed", e);
+                    e.printStackTrace();
+                    cb.onComplete(false);
+                });
+    }
+
+    /** Update user phone number after OTP verification */
+    public static void updateUserPhoneNumber(String email, String phoneNumber, SimpleCallback<Boolean> cb) {
+        final String normalizedEmail = email.trim().toLowerCase();
+        
+        db.collection("users")
+                .whereEqualTo("email", normalizedEmail)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
+                        Log.e(TAG, "User not found for phone update: " + normalizedEmail);
+                        cb.onComplete(false);
+                        return;
+                    }
+
+                    String docId = snapshot.getDocuments().get(0).getId();
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("phoneNumber", phoneNumber);
+                    updates.put("isVerified", true);
+
+                    db.collection("users")
+                            .document(docId)
+                            .update(updates)
+                            .addOnSuccessListener(v -> {
+                                Log.d(TAG, "Phone number updated for: " + normalizedEmail);
+                                cb.onComplete(true);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to update phone number", e);
+                                cb.onComplete(false);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error finding user for phone update", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    /** LOGIN - Supports both email and username */
     public static void login(
             Context ctx,
-            String email,
+            String emailOrUsername,
             String password,
             SimpleCallback<Boolean> cb
     ) {
-        final String normalizedEmail = email.trim().toLowerCase();
-        final String originalEmail = email.trim(); // For legacy accounts
+        final String input = emailOrUsername.trim();
+        final String normalizedEmail = input.toLowerCase();
+        final String originalEmail = input; // For legacy accounts
         // Trim password to ensure consistency with registration
         final String trimmedPassword = password.trim();
         final String hash = PasswordUtil.hashPassword(trimmedPassword);
 
         Log.d("LOGIN_DEBUG", "=== LOGIN ATTEMPT ===");
-        Log.d("LOGIN_DEBUG", "Original email: " + email);
+        Log.d("LOGIN_DEBUG", "Input (email/username): " + input);
         Log.d("LOGIN_DEBUG", "Normalized email: " + normalizedEmail);
         Log.d("LOGIN_DEBUG", "Password length: " + trimmedPassword.length());
         Log.d("LOGIN_DEBUG", "Password hash: " + hash);
 
-        // Try normalized email first (for accounts created after fix)
-        attemptLoginWithEmail(ctx, normalizedEmail, originalEmail, hash, cb, true);
+        // Check if input looks like an email (contains @)
+        boolean isEmail = input.contains("@");
+        
+        if (isEmail) {
+            // Try normalized email first (for accounts created after fix)
+            attemptLoginWithEmail(ctx, normalizedEmail, originalEmail, hash, cb, true);
+        } else {
+            // Try username login
+            attemptLoginWithUsername(ctx, input, hash, cb);
+        }
     }
 
     private static void attemptLoginWithEmail(
@@ -206,6 +306,78 @@ public class FirebaseHelper {
                     Log.e("LOGIN_DEBUG", "Login query failed", e);
                     e.printStackTrace();
                     cb.onComplete(false);
+                });
+    }
+
+    /** LOGIN with username */
+    private static void attemptLoginWithUsername(
+            Context ctx,
+            String username,
+            String hash,
+            SimpleCallback<Boolean> cb
+    ) {
+        Log.d("LOGIN_DEBUG", "Attempting login with username: " + username);
+        
+        db.collection("users")
+                .whereEqualTo("username", username)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap.isEmpty()) {
+                        Log.d("LOGIN_DEBUG", "No user found with username: " + username);
+                        // If username not found, try as email (in case user entered email without @)
+                        Log.d("LOGIN_DEBUG", "Trying as email: " + username.toLowerCase());
+                        attemptLoginWithEmail(ctx, username.toLowerCase(), username, hash, cb, true);
+                        return;
+                    }
+
+                    DocumentSnapshot doc = snap.getDocuments().get(0);
+                    String storedHash = doc.getString("passwordHash");
+                    String storedEmail = doc.getString("email");
+                    String storedUsername = doc.getString("username");
+
+                    Log.d("LOGIN_DEBUG", "User found with username!");
+                    Log.d("LOGIN_DEBUG", "Stored username: " + storedUsername);
+                    Log.d("LOGIN_DEBUG", "Stored email: " + storedEmail);
+                    Log.d("LOGIN_DEBUG", "Stored hash: " + storedHash);
+
+                    if (storedHash == null) {
+                        Log.e("LOGIN_DEBUG", "ERROR: passwordHash field is null in database!");
+                        cb.onComplete(false);
+                        return;
+                    }
+
+                    boolean match = hash.equals(storedHash);
+                    Log.d("LOGIN_DEBUG", "Hash match: " + match);
+                    
+                    // If hash doesn't match, try legacy double-hash
+                    if (!match) {
+                        Log.d("LOGIN_DEBUG", "Trying legacy double-hash check...");
+                        String doubleHash = PasswordUtil.hashPassword(hash);
+                        boolean legacyMatch = doubleHash.equals(storedHash);
+                        Log.d("LOGIN_DEBUG", "Legacy hash match: " + legacyMatch);
+                        if (legacyMatch) {
+                            Log.d("LOGIN_DEBUG", "Login successful with legacy account!");
+                            setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : username);
+                            cb.onComplete(true);
+                            return;
+                        }
+                    }
+
+                    if (match) {
+                        Log.d("LOGIN_DEBUG", "Login successful with username!");
+                        setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : username);
+                    } else {
+                        Log.d("LOGIN_DEBUG", "Login failed - hash mismatch");
+                    }
+
+                    cb.onComplete(match);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("LOGIN_DEBUG", "Username login query failed", e);
+                    e.printStackTrace();
+                    // Fallback: try as email
+                    attemptLoginWithEmail(ctx, username.toLowerCase(), username, hash, cb, true);
                 });
     }
 

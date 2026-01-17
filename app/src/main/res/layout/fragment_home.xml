@@ -61,222 +61,255 @@
                 android:id="@+id/tvGreeting"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 android:text="Hello Mike!"
                 android:textColor="@color/textPrimary"
                 android:textSize="28sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:textStyle="bold" />
 
             <!-- Daily Report Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/colorPurple"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/dailyReportBg">
+                app:cardElevation="10dp"
+                app:cardUseCompatPadding="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:padding="16dp">
 
                     <View
+                        android:id="@+id/viewDailyDot"
                         android:layout_width="12dp"
                         android:layout_height="12dp"
                         android:background="@drawable/bg_circle"
-                        android:backgroundTint="@color/danger"/>
+                        android:backgroundTint="@color/danger" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="12dp">
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Daily Report"
                             android:textColor="@color/surface"
-                            android:textSize="14sp"/>
+                            android:textSize="14sp" />
 
                         <TextView
+                        android:id="@+id/tvDailyCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:alpha="0.85"
                             android:text="• 3 SCAMS DETECTED"
-                            android:textColor="@color/colorGray"
-                            android:textSize="12sp"
-                            android:layout_marginTop="4dp"/>
+                            android:textColor="@color/surface"
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <TextView
                         android:id="@+id/tvViewDetails"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="View Details"
-                        android:textColor="@color/secondaryColor"
-                        android:textSize="12sp"
+                        android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
-                        android:background="?attr/selectableItemBackground"/>
+                        android:text="View Details"
+                        android:textColor="@color/surface"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Premium Section -->
             <TextView
+                android:id="@+id/tvBuyPremium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:text="Buy Fraudulens Premium"
-                android:textColor="@color/textPrimary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:textColor="@color/colorBlue"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <!-- Action Buttons Grid -->
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="2"
+                android:layout_marginBottom="16dp"
                 android:alignmentMode="alignMargins"
-                android:layout_marginBottom="16dp">
+                android:columnCount="2"
+                android:rowCount="2">
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="165dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/colorBlue"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="@color/colorBlue">
+                    app:cardElevation="10dp"
+                    app:cardUseCompatPadding="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
                         android:gravity="center"
+                        android:orientation="vertical"
                         android:padding="16dp">
 
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:src="@android:drawable/ic_menu_recent_history"
-                            android:tint="@color/surface"/>
+                            android:tint="@color/surface" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="SEE SCAM ALERTS"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="SEE SCAM\nALERTS"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"/>
+                            android:lineSpacingExtra="0dp"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardReportScam"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="165dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:cardBackgroundColor="@color/colorBlue"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="@color/colorBlue">
+                    app:cardElevation="10dp"
+                    app:cardUseCompatPadding="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
                         android:gravity="center"
+                        android:orientation="vertical"
                         android:padding="16dp">
 
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:src="@android:drawable/ic_menu_send"
-                            android:tint="@color/surface"/>
+                            android:tint="@color/surface" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="REPORT A SCAM"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="REPORT A\nSCAM"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"/>
+                            android:lineSpacingExtra="0dp"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="165dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/colorPurple"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="@color/colorBlue">
+                    app:cardElevation="10dp"
+                    app:cardUseCompatPadding="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
                         android:gravity="center"
+                        android:orientation="vertical"
                         android:padding="16dp">
 
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:src="@android:drawable/ic_menu_help"
-                            android:tint="@color/surface"/>
+                            android:tint="@color/surface" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="FRAUD PREVENTION TIPS"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="FRAUD\nPREVENTION TIPS"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"/>
+                            android:lineSpacingExtra="0dp"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardTrustedContacts"
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="165dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:cardBackgroundColor="@color/colorPurple"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="@color/colorBlue">
+                    app:cardElevation="10dp"
+                    app:cardUseCompatPadding="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
                         android:gravity="center"
+                        android:orientation="vertical"
                         android:padding="16dp">
 
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:src="@android:drawable/ic_menu_myplaces"
-                            android:tint="@color/surface"/>
+                            android:tint="@color/surface" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="TRUSTED CONTACTS"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="TRUSTED\nCONTACTS"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"/>
+                            android:lineSpacingExtra="0dp"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </GridLayout>

@@ -2,20 +2,27 @@ package com.example.fraudulens.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.fraudulens.utils.FirebaseUtils;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.fraudulens.FirebaseHelper;
+import com.example.fraudulens.R;
 
 public class SplashActivity extends AppCompatActivity {
+    private static final long SPLASH_DELAY_MS = 1200;
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        // simple splash -> decide where to go
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            startActivity(new Intent(this, MainActivity.class));
-        } else {
-            startActivity(new Intent(this, LoginActivity.class));
-        }
-        finish();
+        setContentView(R.layout.activity_splash);
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (FirebaseHelper.isLoggedIn(this)) {
+                startActivity(new Intent(this, MainActivity.class));
+            } else {
+                startActivity(new Intent(this, StarterActivity.class));
+            }
+            finish();
+        }, SPLASH_DELAY_MS);
     }
 }

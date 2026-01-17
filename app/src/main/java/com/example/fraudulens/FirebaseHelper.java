@@ -21,6 +21,10 @@ public class FirebaseHelper {
     private static final String PREFS = "fraudulens_prefs";
     private static final String KEY_LOGGED_IN = "logged_in";
     private static final String KEY_EMAIL = "email";
+    private static final String KEY_PHONE = "phone_number";
+    private static final String KEY_LAST_SEEN_SCAM = "last_seen_scam";
+    private static final String KEY_TRUSTED_NUMBERS = "trusted_numbers";
+    private static final String KEY_TRUSTED_NAMES = "trusted_names";
 
     public interface SimpleCallback<T> {
         void onComplete(T result);
@@ -39,6 +43,33 @@ public class FirebaseHelper {
                 .apply();
     }
 
+    public static void setVerifiedPhone(Context ctx, String phoneNumber) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_PHONE, phoneNumber)
+                .apply();
+    }
+
+    public static void markPhoneVerified(String phoneNumber) {
+        final String normalizedPhone = phoneNumber == null ? "" : phoneNumber.trim();
+        if (normalizedPhone.isEmpty()) {
+            return;
+        }
+        db.collection("users")
+                .whereEqualTo("phoneNumber", normalizedPhone)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.isEmpty()) {
+                        String docId = snapshot.getDocuments().get(0).getId();
+                        db.collection("users")
+                                .document(docId)
+                                .update("isVerified", true);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to mark phone verified", e));
+    }
+
     public static void logout(Context ctx) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit()
@@ -49,6 +80,83 @@ public class FirebaseHelper {
     public static String getLoggedInEmail(Context ctx) {
         return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getString(KEY_EMAIL, null);
+    }
+
+    public static String getVerifiedPhone(Context ctx) {
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(KEY_PHONE, null);
+    }
+
+    public static void setLastSeenScamTimestamp(Context ctx, long timestampMillis) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putLong(KEY_LAST_SEEN_SCAM, timestampMillis)
+                .apply();
+    }
+
+    public static long getLastSeenScamTimestamp(Context ctx) {
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getLong(KEY_LAST_SEEN_SCAM, 0L);
+    }
+
+    public static java.util.Set<String> getTrustedNumbers(Context ctx) {
+        return new java.util.HashSet<>(
+                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .getStringSet(KEY_TRUSTED_NUMBERS, new java.util.HashSet<>())
+        );
+    }
+
+    public static java.util.Set<String> getTrustedNames(Context ctx) {
+        return new java.util.HashSet<>(
+                ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .getStringSet(KEY_TRUSTED_NAMES, new java.util.HashSet<>())
+        );
+    }
+
+    public static void saveTrustedContacts(Context ctx, java.util.Set<String> numbers, java.util.Set<String> names) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putStringSet(KEY_TRUSTED_NUMBERS, new java.util.HashSet<>(numbers))
+                .putStringSet(KEY_TRUSTED_NAMES, new java.util.HashSet<>(names))
+                .apply();
+    }
+
+    public static boolean isTrustedMessage(Context ctx, String address, String body) {
+        String normalizedNumber = normalizePhoneNumber(address);
+        java.util.Set<String> numbers = getTrustedNumbers(ctx);
+        if (!normalizedNumber.isEmpty() && numbers.contains(normalizedNumber)) {
+            return true;
+        }
+        String normalizedBody = body == null ? "" : body.toLowerCase();
+        for (String name : getTrustedNames(ctx)) {
+            if (!name.isEmpty() && normalizedBody.contains(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String normalizePhoneNumber(String number) {
+        if (number == null) return "";
+        return number.replaceAll("[^0-9]", "");
+    }
+
+    public static void logUserActivity(Context ctx, String action) {
+        logUserActivity(ctx, action, null);
+    }
+
+    public static void logUserActivity(Context ctx, String action, Map<String, Object> extras) {
+        String email = getLoggedInEmail(ctx);
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("user", email != null ? email : "anonymous");
+        payload.put("action", action);
+        payload.put("timestamp", FieldValue.serverTimestamp());
+        if (extras != null) {
+            payload.putAll(extras);
+        }
+        db.collection("activity_logs")
+                .add(payload)
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to log activity", e));
     }
 
     // ───────────── USERS (CUSTOM AUTH) ─────────────
@@ -130,6 +238,174 @@ public class FirebaseHelper {
                 });
     }
 
+    /**
+     * Register after phone verification with 4-digit PIN.
+     */
+    public static void registerAfterPhoneVerification(
+            String name,
+            String username,
+            String password,
+            String phoneNumber,
+            SimpleCallback<Boolean> cb
+    ) {
+        registerAfterPhoneVerification(name, username, password, phoneNumber, null, cb);
+    }
+
+    public static void registerAfterPhoneVerification(
+            String name,
+            String username,
+            String password,
+            String phoneNumber,
+            String email,
+            SimpleCallback<Boolean> cb
+    ) {
+        final String normalizedPhone = phoneNumber.trim();
+        final String normalizedEmail = buildPhoneEmail(normalizedPhone);
+        final String normalizedInputEmail = email != null ? email.trim().toLowerCase() : null;
+        final String trimmedUsername = username == null ? "" : username.trim();
+        final String hash = PasswordUtil.hashPassword(password.trim());
+
+        if (normalizedInputEmail != null && !normalizedInputEmail.isEmpty()) {
+            db.collection("users")
+                    .whereEqualTo("email", normalizedInputEmail)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener(emailSnapshot -> {
+                        if (!emailSnapshot.isEmpty()) {
+                            DocumentSnapshot doc = emailSnapshot.getDocuments().get(0);
+                            String docId = doc.getId();
+
+                            // Ensure phone number isn't used by another user
+                            db.collection("users")
+                                    .whereEqualTo("phoneNumber", normalizedPhone)
+                                    .limit(1)
+                                    .get()
+                                    .addOnSuccessListener(phoneSnapshot -> {
+                                        if (!phoneSnapshot.isEmpty()
+                                                && !phoneSnapshot.getDocuments().get(0).getId().equals(docId)) {
+                                            cb.onComplete(false);
+                                            return;
+                                        }
+
+                                        if (!trimmedUsername.isEmpty()) {
+                                            db.collection("users")
+                                                    .whereEqualTo("username", trimmedUsername)
+                                                    .limit(1)
+                                                    .get()
+                                                    .addOnSuccessListener(usernameSnapshot -> {
+                                                        if (!usernameSnapshot.isEmpty()
+                                                                && !usernameSnapshot.getDocuments().get(0).getId().equals(docId)) {
+                                                            cb.onComplete(false);
+                                                            return;
+                                                        }
+                                                        updateUserWithPhone(docId, name, trimmedUsername, normalizedInputEmail, normalizedPhone, hash, cb);
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Log.e(TAG, "username check failed", e);
+                                                        cb.onComplete(false);
+                                                    });
+                                        } else {
+                                            updateUserWithPhone(docId, name, null, normalizedInputEmail, normalizedPhone, hash, cb);
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "phone check failed", e);
+                                        cb.onComplete(false);
+                                    });
+                            return;
+                        }
+
+                        // No email doc found; fall back to phone flow
+                        handlePhoneBasedRegistration(name, trimmedUsername, normalizedEmail, normalizedPhone, hash, cb);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "email check failed", e);
+                        cb.onComplete(false);
+                    });
+            return;
+        }
+
+        handlePhoneBasedRegistration(name, trimmedUsername, normalizedEmail, normalizedPhone, hash, cb);
+    }
+
+    private static void handlePhoneBasedRegistration(
+            String name,
+            String trimmedUsername,
+            String normalizedEmail,
+            String normalizedPhone,
+            String hash,
+            SimpleCallback<Boolean> cb
+    ) {
+        // If a user already exists (OAuth or prior), overwrite profile fields.
+        db.collection("users")
+                .whereEqualTo("phoneNumber", normalizedPhone)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(phoneSnapshot -> {
+                    if (!phoneSnapshot.isEmpty()) {
+                        DocumentSnapshot doc = phoneSnapshot.getDocuments().get(0);
+                        updateUserWithPhone(doc.getId(), name, trimmedUsername, normalizedEmail, normalizedPhone, hash, cb);
+                        return;
+                    }
+
+                    // If username is provided, ensure it's not taken by another user
+                    if (!trimmedUsername.isEmpty()) {
+                        db.collection("users")
+                                .whereEqualTo("username", trimmedUsername)
+                                .limit(1)
+                                .get()
+                                .addOnSuccessListener(usernameSnapshot -> {
+                                    if (!usernameSnapshot.isEmpty()) {
+                                        cb.onComplete(false);
+                                        return;
+                                    }
+                                    createUserWithPhone(name, trimmedUsername, normalizedEmail, normalizedPhone, hash, cb);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "username check failed", e);
+                                    cb.onComplete(false);
+                                });
+                    } else {
+                        createUserWithPhone(name, null, normalizedEmail, normalizedPhone, hash, cb);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "phone check failed", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    /**
+     * Check if an account exists for the email and return provider type.
+     * Returns null if no account exists, "password" if local, or provider (google/facebook/apple).
+     */
+    public static void checkExistingAccountProvider(
+            String email,
+            SimpleCallback<String> cb
+    ) {
+        final String normalizedEmail = email.trim().toLowerCase();
+        db.collection("users")
+                .whereEqualTo("email", normalizedEmail)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
+                        cb.onComplete(null);
+                        return;
+                    }
+                    DocumentSnapshot doc = snapshot.getDocuments().get(0);
+                    String provider = doc.getString("provider");
+                    if (provider == null || provider.trim().isEmpty()) {
+                        provider = "password";
+                    }
+                    cb.onComplete(provider);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking existing account provider", e);
+                    cb.onComplete("password");
+                });
+    }
+
     /** Helper method to create user document */
     private static void createUser(
             String name,
@@ -161,6 +437,68 @@ public class FirebaseHelper {
                     e.printStackTrace();
                     cb.onComplete(false);
                 });
+    }
+
+    private static void createUserWithPhone(
+            String name,
+            String username,
+            String normalizedEmail,
+            String phoneNumber,
+            String hash,
+            SimpleCallback<Boolean> cb
+    ) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("name", name);
+        if (username != null && !username.isEmpty()) {
+            user.put("username", username);
+        }
+        user.put("email", normalizedEmail);
+        user.put("passwordHash", hash);
+        user.put("phoneNumber", phoneNumber);
+        user.put("createdAt", FieldValue.serverTimestamp());
+        user.put("isVerified", true);
+
+        db.collection("users")
+                .add(user)
+                .addOnSuccessListener(d -> cb.onComplete(true))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "register failed", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    private static void updateUserWithPhone(
+            String docId,
+            String name,
+            String username,
+            String normalizedEmail,
+            String phoneNumber,
+            String hash,
+            SimpleCallback<Boolean> cb
+    ) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("name", name);
+        if (username != null && !username.isEmpty()) {
+            updates.put("username", username);
+        }
+        updates.put("email", normalizedEmail);
+        updates.put("passwordHash", hash);
+        updates.put("phoneNumber", phoneNumber);
+        updates.put("isVerified", true);
+
+        db.collection("users")
+                .document(docId)
+                .update(updates)
+                .addOnSuccessListener(v -> cb.onComplete(true))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "update failed", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    private static String buildPhoneEmail(String phoneNumber) {
+        String digits = phoneNumber.replaceAll("[^0-9]", "");
+        return digits + "@fraudulens.local";
     }
 
     /** Update user phone number after OTP verification */
@@ -208,6 +546,16 @@ public class FirebaseHelper {
             String password,
             SimpleCallback<Boolean> cb
     ) {
+        login(ctx, emailOrUsername, password, true, cb);
+    }
+
+    public static void login(
+            Context ctx,
+            String emailOrUsername,
+            String password,
+            boolean setSession,
+            SimpleCallback<Boolean> cb
+    ) {
         final String input = emailOrUsername.trim();
         final String normalizedEmail = input.toLowerCase();
         final String originalEmail = input; // For legacy accounts
@@ -226,10 +574,10 @@ public class FirebaseHelper {
         
         if (isEmail) {
             // Try normalized email first (for accounts created after fix)
-            attemptLoginWithEmail(ctx, normalizedEmail, originalEmail, hash, cb, true);
+            attemptLoginWithEmail(ctx, normalizedEmail, originalEmail, hash, cb, true, setSession);
         } else {
             // Try username login
-            attemptLoginWithUsername(ctx, input, hash, cb);
+            attemptLoginWithUsername(ctx, input, hash, cb, setSession);
         }
     }
 
@@ -239,7 +587,8 @@ public class FirebaseHelper {
             String fallbackEmail,
             String hash,
             SimpleCallback<Boolean> cb,
-            boolean tryFallback
+            boolean tryFallback,
+            boolean setSession
     ) {
         db.collection("users")
                 .whereEqualTo("email", searchEmail)
@@ -252,7 +601,7 @@ public class FirebaseHelper {
                         // Try fallback email if different from search email (for legacy accounts)
                         if (tryFallback && !searchEmail.equals(fallbackEmail)) {
                             Log.d("LOGIN_DEBUG", "Trying fallback with original email format: " + fallbackEmail);
-                            attemptLoginWithEmail(ctx, fallbackEmail, fallbackEmail, hash, cb, false);
+                            attemptLoginWithEmail(ctx, fallbackEmail, fallbackEmail, hash, cb, false, setSession);
                         } else {
                             cb.onComplete(false);
                         }
@@ -287,7 +636,9 @@ public class FirebaseHelper {
                         Log.d("LOGIN_DEBUG", "Legacy hash match: " + legacyMatch);
                         if (legacyMatch) {
                             Log.d("LOGIN_DEBUG", "Login successful with legacy account!");
-                            setLoggedIn(ctx, storedEmail.toLowerCase()); // Normalize for future use
+                            if (setSession) {
+                                setLoggedIn(ctx, storedEmail.toLowerCase()); // Normalize for future use
+                            }
                             cb.onComplete(true);
                             return;
                         }
@@ -295,7 +646,9 @@ public class FirebaseHelper {
 
                     if (match) {
                         Log.d("LOGIN_DEBUG", "Login successful!");
-                        setLoggedIn(ctx, storedEmail.toLowerCase()); // Normalize for consistency
+                        if (setSession) {
+                            setLoggedIn(ctx, storedEmail.toLowerCase()); // Normalize for consistency
+                        }
                     } else {
                         Log.d("LOGIN_DEBUG", "Login failed - hash mismatch");
                     }
@@ -314,7 +667,8 @@ public class FirebaseHelper {
             Context ctx,
             String username,
             String hash,
-            SimpleCallback<Boolean> cb
+            SimpleCallback<Boolean> cb,
+            boolean setSession
     ) {
         Log.d("LOGIN_DEBUG", "Attempting login with username: " + username);
         
@@ -327,7 +681,7 @@ public class FirebaseHelper {
                         Log.d("LOGIN_DEBUG", "No user found with username: " + username);
                         // If username not found, try as email (in case user entered email without @)
                         Log.d("LOGIN_DEBUG", "Trying as email: " + username.toLowerCase());
-                        attemptLoginWithEmail(ctx, username.toLowerCase(), username, hash, cb, true);
+                        attemptLoginWithEmail(ctx, username.toLowerCase(), username, hash, cb, true, setSession);
                         return;
                     }
 
@@ -358,7 +712,9 @@ public class FirebaseHelper {
                         Log.d("LOGIN_DEBUG", "Legacy hash match: " + legacyMatch);
                         if (legacyMatch) {
                             Log.d("LOGIN_DEBUG", "Login successful with legacy account!");
-                            setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : username);
+                            if (setSession) {
+                                setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : username);
+                            }
                             cb.onComplete(true);
                             return;
                         }
@@ -366,7 +722,9 @@ public class FirebaseHelper {
 
                     if (match) {
                         Log.d("LOGIN_DEBUG", "Login successful with username!");
-                        setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : username);
+                        if (setSession) {
+                            setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : username);
+                        }
                     } else {
                         Log.d("LOGIN_DEBUG", "Login failed - hash mismatch");
                     }
@@ -377,8 +735,150 @@ public class FirebaseHelper {
                     Log.e("LOGIN_DEBUG", "Username login query failed", e);
                     e.printStackTrace();
                     // Fallback: try as email
-                    attemptLoginWithEmail(ctx, username.toLowerCase(), username, hash, cb, true);
+                    attemptLoginWithEmail(ctx, username.toLowerCase(), username, hash, cb, true, setSession);
                 });
+    }
+
+    /**
+     * Verify 4-digit PIN after username/password login.
+     */
+    public static void verifyPinForLogin(
+            Context ctx,
+            String emailOrUsername,
+            String pin,
+            SimpleCallback<Boolean> cb
+    ) {
+        final String pinHash = PasswordUtil.hashPassword(pin.trim());
+        findUserByLoginId(emailOrUsername, doc -> {
+            if (doc == null) {
+                cb.onComplete(false);
+                return;
+            }
+            handlePinCheck(ctx, doc, pinHash, cb);
+        });
+    }
+
+    public static void hasPinForLogin(
+            String emailOrUsername,
+            SimpleCallback<Boolean> cb
+    ) {
+        findUserByLoginId(emailOrUsername, doc -> {
+            if (doc == null) {
+                cb.onComplete(false);
+                return;
+            }
+            String storedPinHash = doc.getString("pinHash");
+            cb.onComplete(storedPinHash != null && !storedPinHash.trim().isEmpty());
+        });
+    }
+
+    public static void setPinForLogin(
+            Context ctx,
+            String emailOrUsername,
+            String pin,
+            SimpleCallback<Boolean> cb
+    ) {
+        setPinForLogin(ctx, emailOrUsername, pin, true, cb);
+    }
+
+    public static void setPinForLogin(
+            Context ctx,
+            String emailOrUsername,
+            String pin,
+            boolean setSession,
+            SimpleCallback<Boolean> cb
+    ) {
+        String pinHash = PasswordUtil.hashPassword(pin.trim());
+        findUserByLoginId(emailOrUsername, doc -> {
+            if (doc == null) {
+                cb.onComplete(false);
+                return;
+            }
+            String docId = doc.getId();
+            String storedEmail = doc.getString("email");
+            db.collection("users")
+                    .document(docId)
+                    .update("pinHash", pinHash)
+                    .addOnSuccessListener(v -> {
+                        if (setSession && storedEmail != null) {
+                            setLoggedIn(ctx, storedEmail.toLowerCase());
+                        }
+                        cb.onComplete(true);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to set PIN", e);
+                        cb.onComplete(false);
+                    });
+        });
+    }
+
+    private static void handlePinCheck(Context ctx, DocumentSnapshot doc, String pinHash, SimpleCallback<Boolean> cb) {
+        String storedPinHash = doc.getString("pinHash");
+        String storedEmail = doc.getString("email");
+        if (storedPinHash == null) {
+            cb.onComplete(false);
+            return;
+        }
+        boolean match = pinHash.equals(storedPinHash);
+        if (match) {
+            setLoggedIn(ctx, storedEmail != null ? storedEmail.toLowerCase() : "");
+        }
+        cb.onComplete(match);
+    }
+
+    private static void findUserByEmail(String email, SimpleCallback<DocumentSnapshot> cb) {
+        db.collection("users")
+                .whereEqualTo("email", email)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap.isEmpty()) {
+                        cb.onComplete(null);
+                    } else {
+                        cb.onComplete(snap.getDocuments().get(0));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "email lookup failed", e);
+                    cb.onComplete(null);
+                });
+    }
+
+    private static void findUserByUsername(String username, SimpleCallback<DocumentSnapshot> cb) {
+        db.collection("users")
+                .whereEqualTo("username", username)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap.isEmpty()) {
+                        cb.onComplete(null);
+                    } else {
+                        cb.onComplete(snap.getDocuments().get(0));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "username lookup failed", e);
+                    cb.onComplete(null);
+                });
+    }
+
+    private static void findUserByLoginId(String emailOrUsername, SimpleCallback<DocumentSnapshot> cb) {
+        final String input = emailOrUsername.trim();
+        final String normalizedEmail = input.toLowerCase();
+        boolean isEmail = input.contains("@");
+
+        if (isEmail) {
+            findUserByEmail(normalizedEmail, cb);
+            return;
+        }
+
+        findUserByUsername(input, doc -> {
+            if (doc != null) {
+                cb.onComplete(doc);
+            } else {
+                findUserByEmail(normalizedEmail, cb);
+            }
+        });
     }
 
 

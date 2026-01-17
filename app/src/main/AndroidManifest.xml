@@ -5,6 +5,9 @@
 
     <!-- ✅ Permissions go HERE -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="true"
@@ -14,11 +17,34 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FrauduLens">
+        android:theme="@style/Theme.FrauduLens"
+        android:usesCleartextTraffic="true">
+        
+        <!-- Facebook Configuration -->
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+
+        <!-- Facebook Activity for Login -->
+        <activity android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name" />
+        <activity
+            android:name="com.facebook.CustomTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/fb_login_protocol_scheme" />
+            </intent-filter>
+        </activity>
 
         <!-- Splash / Launcher -->
         <activity
-            android:name=".activities.SplashActivity"
+            android:name="com.example.fraudulens.activities.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,6 +53,10 @@
         </activity>
 
         <!-- Auth -->
+        <activity
+            android:name=".activities.StarterActivity"
+            android:exported="false" />
+
         <activity
             android:name=".activities.LoginActivity"
             android:exported="false" />
@@ -39,6 +69,18 @@
             android:name=".activities.OtpActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activities.CreateProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.PinLoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.PinSetupActivity"
+            android:exported="false" />
+
         <!-- Main -->
         <activity
             android:name=".activities.MainActivity"
@@ -47,6 +89,49 @@
         <!-- Admin -->
         <activity
             android:name=".activities.AdminLoginActivity"
+            android:exported="false" />
+
+        <!-- Phone Verification & OTP -->
+        <activity
+            android:name=".activities.PhoneVerificationActivity"
+            android:exported="false" />
+
+        <!-- Premium -->
+        <activity
+            android:name=".activities.PremiumActivity"
+            android:exported="false" />
+
+        <!-- Scam Messages -->
+        <activity
+            android:name=".activities.ScamMessagesActivity"
+            android:exported="false" />
+
+        <!-- Trusted Contacts -->
+        <activity
+            android:name=".activities.TrustedContactsActivity"
+            android:exported="false" />
+
+        <!-- Report Scam -->
+        <activity
+            android:name=".activities.ReportScamActivity"
+            android:exported="false" />
+
+        <!-- Activity Log (Admin) -->
+        <activity
+            android:name=".activities.ActivityLogActivity"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receivers.SmsReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Settings -->
+        <activity
+            android:name=".activities.SettingsActivity"
             android:exported="false" />
 
 

@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,14 +17,14 @@ import com.example.fraudulens.R;
 
 public class SearchFragment extends Fragment {
     private EditText etQuery;
-    private Button btnCheck;
+    private ImageView btnCheck;
     private TextView tvResult;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_search, container, false);
 
-        etQuery = v.findViewById(R.id.etQuery);
+        etQuery = v.findViewById(R.id.etSearch);
         btnCheck = v.findViewById(R.id.btnCheck);
         tvResult = v.findViewById(R.id.tvResult);
 
@@ -36,6 +36,7 @@ public class SearchFragment extends Fragment {
                 return;
             }
 
+            tvResult.setVisibility(View.VISIBLE);
             tvResult.setText("Checking...");
             FirebaseHelper.getReportByMessage(q, exists -> {
                 if (getActivity() == null) return;

@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_bg_reversed"
-    android:padding="24dp">
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
 
     <ImageView
         android:id="@+id/imgLogo"
@@ -62,15 +67,18 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:text="Continue with Apple"
-            android:textColor="@color/textPrimary"
+            android:textColor="@color/surface"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:icon="@android:drawable/ic_menu_help"
-            app:iconTint="@color/textPrimary"
+            app:icon="@drawable/ic_apple"
+            app:iconSize="20dp"
+            app:iconPadding="12dp"
+            app:iconTint="@null"
             app:cornerRadius="12dp"
-            app:strokeWidth="0dp"
-            android:backgroundTint="@color/surface"
-            style="@style/Widget.MaterialComponents.Button"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/surface"
+            android:backgroundTint="@android:color/transparent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_marginBottom="12dp"/>
 
         <com.google.android.material.button.MaterialButton
@@ -78,15 +86,18 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:text="Continue with Google"
-            android:textColor="@color/textPrimary"
+            android:textColor="@color/surface"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:icon="@android:drawable/ic_menu_help"
-            app:iconTint="@color/textPrimary"
+            app:icon="@drawable/ic_gmail"
+            app:iconSize="20dp"
+            app:iconPadding="12dp"
+            app:iconTint="@null"
             app:cornerRadius="12dp"
-            app:strokeWidth="0dp"
-            android:backgroundTint="@color/surface"
-            style="@style/Widget.MaterialComponents.Button"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/surface"
+            android:backgroundTint="@android:color/transparent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_marginBottom="12dp"/>
 
         <com.google.android.material.button.MaterialButton
@@ -94,15 +105,18 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:text="Continue with Facebook"
-            android:textColor="@color/textPrimary"
+            android:textColor="@color/surface"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:icon="@android:drawable/ic_menu_help"
-            app:iconTint="@color/textPrimary"
+            app:icon="@drawable/ic_faecbook"
+            app:iconSize="20dp"
+            app:iconPadding="12dp"
+            app:iconTint="@null"
             app:cornerRadius="12dp"
-            app:strokeWidth="0dp"
-            android:backgroundTint="@color/surface"
-            style="@style/Widget.MaterialComponents.Button"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/surface"
+            android:backgroundTint="@android:color/transparent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_marginBottom="12dp"/>
 
         <com.google.android.material.button.MaterialButton
@@ -136,4 +150,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="32dp"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

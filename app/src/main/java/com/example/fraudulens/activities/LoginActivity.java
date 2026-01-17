@@ -8,8 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
-import com.example.fraudulens.utils.AuthHelper;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -18,10 +16,9 @@ public class LoginActivity extends AppCompatActivity {
     private static final String KEY_SAVED_EMAIL = "saved_email";
 
     private EditText etEmail, etPass;
-    private Button btnLogin, btnGoogleSignIn;
+    private Button btnLogin;
     private TextView tvForgot, tvRegister;
     private CheckBox cbRememberMe;
-    private GoogleSignInClient googleSignInClient;
 
     @Override
     protected void onCreate(Bundle s) {
@@ -31,27 +28,16 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etPass = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
-        btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
         tvForgot = findViewById(R.id.tvForgot);
         tvRegister = findViewById(R.id.tvRegister);
         cbRememberMe = findViewById(R.id.cbRememberMe);
 
-        // Initialize Google Sign-In (only if configured)
-        googleSignInClient = AuthHelper.getGoogleSignInClient(this);
-        
-        // Hide/disable Google Sign-In button if not configured
-        if (googleSignInClient == null || !AuthHelper.isGoogleSignInConfigured(this)) {
-            btnGoogleSignIn.setVisibility(android.view.View.GONE);
-            Log.d("LoginActivity", "Google Sign-In not configured, hiding button");
-        }
-
         btnLogin.setOnClickListener(v -> attemptLogin());
-        btnGoogleSignIn.setOnClickListener(v -> signInWithGoogle());
         tvForgot.setOnClickListener(v ->
                 startActivity(new Intent(this, ForgotPasswordActivity.class))
         );
         tvRegister.setOnClickListener(v ->
-                startActivity(new Intent(this, RegisterActivity.class))
+                startActivity(new Intent(this, StarterActivity.class))
         );
 
         // Load saved email if Remember me was checked
@@ -95,42 +81,29 @@ public class LoginActivity extends AppCompatActivity {
         editor.apply();
 
         // ✅ Supports both email and username login
-        FirebaseHelper.login(this, emailOrUsername, pass, success -> runOnUiThread(() -> {
+        FirebaseHelper.login(this, emailOrUsername, pass, false, success -> runOnUiThread(() -> {
             btnLogin.setEnabled(true);
 
             if (success) {
-                // setLoggedIn is already called inside FirebaseHelper.login()
-                startMain();
+                FirebaseHelper.hasPinForLogin(emailOrUsername, hasPin -> runOnUiThread(() -> {
+                    if (hasPin) {
+                        FirebaseHelper.logUserActivity(this, "login_password_verified");
+                        Intent intent = new Intent(this, PinLoginActivity.class);
+                        intent.putExtra(PinLoginActivity.EXTRA_LOGIN_ID, emailOrUsername);
+                        startActivity(intent);
+                    } else {
+                        FirebaseHelper.logUserActivity(this, "login_password_verified");
+                        Intent intent = new Intent(this, PinSetupActivity.class);
+                        intent.putExtra(PinSetupActivity.EXTRA_LOGIN_ID, emailOrUsername);
+                        startActivity(intent);
+                    }
+                }));
             } else {
                 Toast.makeText(this,
                         "Invalid email or password",
                         Toast.LENGTH_SHORT).show();
             }
         }));
-    }
-
-    private void signInWithGoogle() {
-        if (googleSignInClient == null) {
-            Toast.makeText(this, "Google Sign-In is not configured. Please set up Firebase and add Web Client ID.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        
-        try {
-            Intent signInIntent = googleSignInClient.getSignInIntent();
-            startActivityForResult(signInIntent, AuthHelper.RC_GOOGLE_SIGN_IN);
-        } catch (Exception e) {
-            Log.e("LoginActivity", "Error starting Google Sign-In", e);
-            Toast.makeText(this, "Unable to start Google Sign-In. Please check your configuration.", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == AuthHelper.RC_GOOGLE_SIGN_IN) {
-            AuthHelper.handleGoogleSignInResult(data, this);
-        }
     }
 
     private void startMain() {

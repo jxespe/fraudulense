@@ -2,6 +2,7 @@ package com.example.fraudulens.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 import com.example.fraudulens.utils.AuthHelper;
+import com.facebook.CallbackManager;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -20,8 +22,9 @@ public class RegisterActivity extends AppCompatActivity {
 
     private TextInputEditText etName, etUsername, etEmail, etPass, etConfirmPass;
     private CheckBox cbTerms;
-    private Button btnCreate, btnGoogleSignIn;
+    private Button btnCreate, btnGoogleSignIn, btnFacebookSignIn, btnAppleSignIn;
     private GoogleSignInClient googleSignInClient;
+    private CallbackManager facebookCallbackManager;
 
     @Override
     protected void onCreate(Bundle s) {
@@ -36,6 +39,8 @@ public class RegisterActivity extends AppCompatActivity {
         cbTerms = findViewById(R.id.cbTerms);
         btnCreate = findViewById(R.id.btnCreate);
         btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
+        btnFacebookSignIn = findViewById(R.id.btnFacebookSignIn);
+        btnAppleSignIn = findViewById(R.id.btnAppleSignIn);
 
         // Initialize Google Sign-In (only if configured)
         googleSignInClient = AuthHelper.getGoogleSignInClient(this);
@@ -48,6 +53,15 @@ public class RegisterActivity extends AppCompatActivity {
 
         btnCreate.setOnClickListener(v -> register());
         btnGoogleSignIn.setOnClickListener(v -> signInWithGoogle());
+        btnFacebookSignIn.setOnClickListener(v -> signInWithFacebook());
+        btnAppleSignIn.setOnClickListener(v -> signInWithApple());
+
+        // Initialize Facebook Login
+        facebookCallbackManager = AuthHelper.initializeFacebookLogin(this);
+        if (facebookCallbackManager == null || !AuthHelper.isFacebookLoginConfigured(this)) {
+            btnFacebookSignIn.setVisibility(android.view.View.GONE);
+            Log.d("RegisterActivity", "Facebook Login not configured, hiding button");
+        }
     }
 
     private void register() {
@@ -85,24 +99,37 @@ public class RegisterActivity extends AppCompatActivity {
 
         btnCreate.setEnabled(false);
 
-        // Pass plain password - FirebaseHelper.register() will hash it
-        FirebaseHelper.register(name, username, email, pass, success ->
-                runOnUiThread(() -> {
-                    btnCreate.setEnabled(true);
+        FirebaseHelper.checkExistingAccountProvider(email, provider -> runOnUiThread(() -> {
+            if (provider != null) {
+                btnCreate.setEnabled(true);
+                if ("password".equals(provider)) {
+                    Toast.makeText(this, "Account already exists. Please log in.", Toast.LENGTH_LONG).show();
+                } else {
+                    String providerName = provider.substring(0, 1).toUpperCase() + provider.substring(1);
+                    Toast.makeText(this, "Account already exists. Please sign in with " + providerName + ".", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
 
-                    if (success) {
-                        // Navigate to phone verification
-                        Intent intent = new Intent(RegisterActivity.this, PhoneVerificationActivity.class);
-                        intent.putExtra("email", email);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(this,
-                                "Email already exists or registration failed.",
-                                Toast.LENGTH_LONG).show();
-                    }
-                })
-        );
+            // Pass plain password - FirebaseHelper.register() will hash it
+            FirebaseHelper.register(name, username, email, pass, success ->
+                    runOnUiThread(() -> {
+                        btnCreate.setEnabled(true);
+
+                        if (success) {
+                            // Navigate to phone verification
+                            Intent intent = new Intent(RegisterActivity.this, PhoneVerificationActivity.class);
+                            intent.putExtra("email", email);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(this,
+                                    "Email or username already exists.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    })
+            );
+        }));
     }
 
     private void signInWithGoogle() {
@@ -120,12 +147,26 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+    private void signInWithFacebook() {
+        if (facebookCallbackManager == null || !AuthHelper.isFacebookLoginConfigured(this)) {
+            Toast.makeText(this, "Facebook Login is not configured. Please add Facebook App ID in strings.xml", Toast.LENGTH_LONG).show();
+            return;
+        }
+        AuthHelper.loginWithFacebook(this, facebookCallbackManager);
+    }
+
+    private void signInWithApple() {
+        AuthHelper.loginWithApple(this);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         
         if (requestCode == AuthHelper.RC_GOOGLE_SIGN_IN) {
             AuthHelper.handleGoogleSignInResult(data, this);
+        } else if (facebookCallbackManager != null) {
+            facebookCallbackManager.onActivityResult(requestCode, resultCode, data);
         }
     }
 }

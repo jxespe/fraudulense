@@ -24,23 +24,62 @@ public class FirebaseUtils {
 
     // ✅ Send OTP verification
     public static void sendVerificationCode(String phone, Activity activity, Consumer<String> callback) {
+        // Ensure phone number has country code
+        String formattedPhone = phone.startsWith("+") ? phone : "+63" + phone;
+        
+        android.util.Log.d("FirebaseUtils", "Sending OTP to: " + formattedPhone);
+        
         PhoneAuthOptions options = PhoneAuthOptions.newBuilder(auth)
-                .setPhoneNumber(phone.startsWith("+") ? phone : "+63" + phone)
+                .setPhoneNumber(formattedPhone)
                 .setTimeout(60L, TimeUnit.SECONDS)
                 .setActivity(activity)
                 .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                     @Override
-                    public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {}
+                    public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
+                        android.util.Log.d("FirebaseUtils", "Verification completed automatically");
+                        // Auto-verification (usually in emulator or test environment)
+                        // You can handle this if needed
+                    }
 
                     @Override
                     public void onVerificationFailed(@NonNull FirebaseException e) {
-                        e.printStackTrace();
+                        android.util.Log.e("FirebaseUtils", "OTP verification failed", e);
+                        String errorMessage = "Failed to send OTP";
+                        
+                        // Provide helpful error messages
+                        if (e.getMessage() != null) {
+                            String msg = e.getMessage().toLowerCase();
+                            if (msg.contains("invalid") && msg.contains("phone")) {
+                                errorMessage = "Invalid phone number format. Please enter a valid 10-digit number.";
+                            } else if (msg.contains("quota")) {
+                                errorMessage = "SMS quota exceeded. Please try again later or use a test phone number.";
+                            } else if (msg.contains("not allowed") || msg.contains("disabled") || 
+                                       msg.contains("not enabled") || msg.contains("missing_instanceid") ||
+                                       msg.contains("sign-in provider is disabled")) {
+                                errorMessage = "Phone Authentication is disabled in Firebase. Please enable it in Firebase Console > Authentication > Sign-in method > Phone.";
+                            } else if (msg.contains("network")) {
+                                errorMessage = "Network error. Please check your internet connection.";
+                            } else {
+                                errorMessage = "Error sending OTP: " + e.getMessage();
+                            }
+                        }
+                        
+                        // Create final variable for lambda
+                        final String finalErrorMessage = errorMessage;
+                        
+                        // Show error to user
+                        activity.runOnUiThread(() -> {
+                            android.widget.Toast.makeText(activity, finalErrorMessage, android.widget.Toast.LENGTH_LONG).show();
+                        });
                     }
 
                     @Override
                     public void onCodeSent(@NonNull String verificationId,
                                            @NonNull PhoneAuthProvider.ForceResendingToken token) {
-                        callback.accept(verificationId);
+                        android.util.Log.d("FirebaseUtils", "OTP code sent successfully. Verification ID: " + verificationId);
+                        if (callback != null) {
+                            callback.accept(verificationId);
+                        }
                     }
                 }).build();
         PhoneAuthProvider.verifyPhoneNumber(options);

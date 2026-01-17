@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_bg_reversed">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#E3F2FD"
+        app:title="Set PIN"
+        app:titleTextColor="@color/textPrimary"
+        app:navigationIcon="@android:drawable/ic_menu_revert"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toTopOf="@id/keypadContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Set your 4-digit PIN"
+                android:textColor="@color/surface"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="40dp"/>
+
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Enter your PIN to secure your account"
+                android:textColor="@color/surface"
+                android:textSize="14sp"
+                android:alpha="0.9"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/tvTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <LinearLayout
+                android:id="@+id/llPinInputs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="32dp"
+                app:layout_constraintTop_toBottomOf="@id/tvDescription"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPin1"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPin2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPin3"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPin4"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvConfirmTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Confirm your PIN"
+                android:textColor="@color/surface"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@id/llPinInputs"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <LinearLayout
+                android:id="@+id/llConfirmPinInputs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/tvConfirmTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmPin1"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmPin2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmPin3"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmPin4"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_card"
+                    android:textColor="@color/textPrimary"/>
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubmitPin"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:text="Continue"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="32dp"
+                app:cornerRadius="12dp"
+                android:backgroundTint="@color/colorBlue"
+                style="@style/Widget.MaterialComponents.Button"
+                app:layout_constraintTop_toBottomOf="@id/llConfirmPinInputs"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/keypadContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLightPurple"
+        android:orientation="vertical"
+        android:padding="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <GridLayout
+            android:layout_width="231dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:alignmentMode="alignMargins"
+            android:columnCount="3"
+            android:rowCount="4">
+
+            <Button
+                android:id="@+id/btn1"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="1"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn2"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="2"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn3"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="3"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn4"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="4"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn5"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="5"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn6"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="6"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn7"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="7"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn8"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="8"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Button
+                android:id="@+id/btn9"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="9"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp" />
+
+            <Button
+                android:id="@+id/btn0"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                android:backgroundTint="@color/white"
+                android:text="0"
+                android:textColor="@color/colorPurple"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/colorPurple"
+                app:strokeWidth="2dp" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp" />
+
+        </GridLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

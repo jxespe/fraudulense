@@ -19,4 +19,11 @@
     <string name="result_scam">Potential Scam</string>
     <string name="user_profile">User Profile</string>
     <string name="like_post">Like this post</string>
+    <!-- Google Sign-In: Get this from Firebase Console > Project Settings > Your Apps > Web App -->
+    <string name="default_web_client_id">838199002873-lqa0f36vla792o6nn26dd0t9tkic5gnt.apps.googleusercontent.com</string>
+    
+    <!-- Facebook Login: Get these from https://developers.facebook.com/apps/ -->
+    <string name="facebook_app_id">3215958175243587</string>
+    <string name="facebook_client_token">ecf5414a06297c3a820b93773bbc6400</string>
+    <string name="fb_login_protocol_scheme">fb3215958175243587</string>
 </resources>

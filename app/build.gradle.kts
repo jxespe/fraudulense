@@ -54,6 +54,12 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
+    
+    // ✅ Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    
+    // ✅ Facebook Login
+    implementation("com.facebook.android:facebook-login:17.0.0")
 
     // ✅ Testing
     testImplementation("junit:junit:4.13.2")

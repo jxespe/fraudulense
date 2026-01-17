@@ -12,7 +12,20 @@
           "package_name": "com.example.fraudulens"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "838199002873-btii970anq6n60k2fa2q7n1i9bd4vo7q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fraudulens",
+            "certificate_hash": "999dbcc24208aa0c780d947d0fa9553b7bfb854d"
+          }
+        },
+        {
+          "client_id": "838199002873-lqa0f36vla792o6nn26dd0t9tkic5gnt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCnBT93pmhUQ9gW1ohWEHzTSjfcp0lUzPY"
@@ -20,26 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:838199002873:android:06c52fcde580d6f85fc428",
-        "android_client_info": {
-          "package_name": "com.example.fraudulense"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCnBT93pmhUQ9gW1ohWEHzTSjfcp0lUzPY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "838199002873-lqa0f36vla792o6nn26dd0t9tkic5gnt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

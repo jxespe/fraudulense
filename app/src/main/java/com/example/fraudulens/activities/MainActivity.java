@@ -39,10 +39,8 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new HomeFragment();
             } else if (itemId == R.id.nav_search) {
                 selectedFragment = new SearchFragment();
-            } else if (itemId == R.id.nav_report) {
-                selectedFragment = new ScanFragment();
-            } else if (itemId == R.id.nav_community) {
-                selectedFragment = new CommunityFragment();
+            } else if (itemId == R.id.nav_favorites) {
+                selectedFragment = new CommunityFragment(); // T3 UI - Scam Feed
             } else if (itemId == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
             }

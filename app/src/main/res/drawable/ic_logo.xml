@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+    INSTRUCTIONS TO USE YOUR LOGO IMAGE:
+    
+    1. Save your logo image file (the one you showed me) as: ic_logo.png
+       (or ic_logo.webp for better compression)
+    
+    2. Place it directly in: app/src/main/res/drawable/ic_logo.png
+    
+    3. Delete this XML file - Android will automatically use the PNG/WebP file
+       when you reference @drawable/ic_logo in your layouts
+    
+    OR if you want to keep using XML, rename your image file to something else
+    like logo_image.png and reference it below.
+-->
+
+<!-- Temporary placeholder - Remove this and add your ic_logo.png file instead -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="128dp" android:height="128dp" android:viewportWidth="24" android:viewportHeight="24">
-    <!-- Simple shield logo placeholder -->
-    <path android:fillColor="@color/surface" android:pathData="M12,1L3,5v6c0,5 3.7,10.3 9,12 5.3-1.7 9-7 9-12V5l-9-4z"/>
-    <path android:fillColor="@color/primaryColor" android:pathData="M12 3.2 18 6v5.8c0 3.9-2.6 7.7-6 8.9-3.4-1.2-6-5-6-8.9V6z"/>
+    android:width="200dp"
+    android:height="80dp"
+    android:viewportWidth="200"
+    android:viewportHeight="80">
+    <!-- This is just a placeholder - add your actual logo image file -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,40 L180,40"/>
 </vector>

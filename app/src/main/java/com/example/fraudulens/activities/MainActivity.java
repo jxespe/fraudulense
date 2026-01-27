@@ -16,6 +16,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNav;
+    private static final int HOME_ITEM_ID = R.id.nav_home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         // ✅ Load default fragment
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment());
-            bottomNav.setSelectedItemId(R.id.nav_home);
+            bottomNav.setSelectedItemId(HOME_ITEM_ID);
         }
 
         // ✅ Handle bottom navigation clicks
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();
 
-            if (itemId == R.id.nav_home) {
+            if (itemId == HOME_ITEM_ID) {
                 selectedFragment = new HomeFragment();
             } else if (itemId == R.id.nav_search) {
                 selectedFragment = new SearchFragment();
@@ -64,5 +65,15 @@ public class MainActivity extends AppCompatActivity {
                 )
                 .replace(R.id.container, fragment)
                 .commit();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (bottomNav != null && bottomNav.getSelectedItemId() != HOME_ITEM_ID) {
+            bottomNav.setSelectedItemId(HOME_ITEM_ID);
+            loadFragment(new HomeFragment());
+            return;
+        }
+        moveTaskToBack(true);
     }
 }

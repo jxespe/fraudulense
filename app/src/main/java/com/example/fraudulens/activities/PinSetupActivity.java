@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import android.widget.ImageButton;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
@@ -26,6 +28,17 @@ public class PinSetupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_setup);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        ImageButton btnBackNav = findViewById(R.id.btnBackNav);
+        if (btnBackNav != null) {
+            btnBackNav.setOnClickListener(v -> onBackPressed());
+        }
 
         loginId = getIntent().getStringExtra(EXTRA_LOGIN_ID);
         if (loginId == null || loginId.trim().isEmpty()) {

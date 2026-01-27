@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import android.widget.ImageButton;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 import com.example.fraudulens.utils.FirebaseUtils;
@@ -31,6 +33,17 @@ public class OtpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        ImageButton btnBackNav = findViewById(R.id.btnBackNav);
+        if (btnBackNav != null) {
+            btnBackNav.setOnClickListener(v -> onBackPressed());
+        }
+
         verificationId = getIntent().getStringExtra("verificationId");
         phoneNumber = getIntent().getStringExtra("phoneNumber");
 
@@ -45,10 +58,6 @@ public class OtpActivity extends AppCompatActivity {
         setupKeypad();
         startTimer();
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
     }
 
     @Override
@@ -111,6 +120,22 @@ public class OtpActivity extends AppCompatActivity {
                     }
                 }
             });
+        }
+
+        Button btnBackspace = findViewById(R.id.btnBackspace);
+        if (btnBackspace != null) {
+            btnBackspace.setOnClickListener(v -> clearLastDigit());
+        }
+    }
+
+    private void clearLastDigit() {
+        for (int i = otpInputs.length - 1; i >= 0; i--) {
+            TextInputEditText input = otpInputs[i];
+            if (input.getText() != null && !input.getText().toString().isEmpty()) {
+                input.setText("");
+                input.requestFocus();
+                break;
+            }
         }
     }
 

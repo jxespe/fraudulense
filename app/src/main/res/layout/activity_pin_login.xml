@@ -8,14 +8,45 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
-        android:background="#E3F2FD"
-        app:title="Enter PIN"
-        app:titleTextColor="@color/textPrimary"
-        app:navigationIcon="@android:drawable/ic_menu_revert"
+        android:layout_height="112dp"
+        android:background="#1bb8f6"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        app:contentInsetStartWithNavigation="0dp"
+        app:contentInsetStart="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBackNav"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginBottom="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Back"
+            android:padding="6dp"
+            android:src="@drawable/ic_back_chevron"
+            android:tint="@color/surface" />
+
+        <TextView
+            android:id="@+id/tvToolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:includeFontPadding="true"
+            android:minHeight="24dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="Sign-in"
+            android:textColor="@color/surface"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
         android:layout_width="0dp"
@@ -128,7 +159,8 @@
                 android:textStyle="bold"
                 android:layout_marginTop="32dp"
                 app:cornerRadius="12dp"
-                android:backgroundTint="@color/colorBlue"
+                android:backgroundTint="#2f08F1"
+                android:textColor="@color/surface"
                 style="@style/Widget.MaterialComponents.Button"
                 app:layout_constraintTop_toBottomOf="@id/llPinInputs"
                 app:layout_constraintStart_toStartOf="parent"
@@ -322,11 +354,21 @@
                 app:strokeColor="@color/colorPurple"
                 app:strokeWidth="2dp" />
 
-            <Space
+            <Button
+                android:id="@+id/btnBackspace"
                 android:layout_width="0dp"
                 android:layout_height="70dp"
                 android:layout_columnWeight="1"
-                android:layout_margin="6dp" />
+                android:layout_margin="6dp"
+                android:backgroundTint="@android:color/transparent"
+                android:elevation="0dp"
+                android:stateListAnimator="@null"
+                android:text=""
+                android:contentDescription="Backspace"
+                app:icon="@drawable/ic_backspace"
+                app:iconTint="@color/colorPurple"
+                app:iconSize="22dp"
+                app:cornerRadius="12dp" />
 
         </GridLayout>
     </LinearLayout>

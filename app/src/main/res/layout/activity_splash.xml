@@ -7,8 +7,8 @@
 
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="340dp"
-        android:layout_height="220dp"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
         android:src="@drawable/flbg"
         android:scaleType="fitXY"
         app:layout_constraintTop_toTopOf="parent"

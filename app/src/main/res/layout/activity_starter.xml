@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_bg_reversed"
@@ -13,8 +14,8 @@
 
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="340dp"
-        android:layout_height="220dp"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
         android:src="@drawable/flbg"
         android:scaleType="fitXY"
         app:layout_constraintTop_toTopOf="parent"
@@ -22,33 +23,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="80dp"/>
 
-    <TextView
-        android:id="@+id/tvAppName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="FrauduLens"
-        android:textColor="@color/surface"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.02"
-        app:layout_constraintTop_toBottomOf="@id/imgLogo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
-
-    <TextView
-        android:id="@+id/tvTagline"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Your smart fraud detector"
-        android:textColor="@color/surface"
-        android:textSize="16sp"
-        android:alpha="0.9"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/tvAppName"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        <TextView
+            android:id="@+id/tvTagline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha="0.9"
+            android:gravity="center"
+            android:text="Just a few quick things to get started."
+            android:textColor="@color/surface"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="279dp" />
 
     <LinearLayout
         android:id="@+id/llButtons"
@@ -59,48 +45,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/tvLoginLink"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="1dp"
         android:layout_marginBottom="24dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnApple"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:text="Continue with Apple"
             android:textColor="@color/surface"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:icon="@drawable/ic_apple"
-            app:iconSize="20dp"
-            app:iconPadding="12dp"
-            app:iconTint="@null"
             app:cornerRadius="12dp"
             app:strokeWidth="2dp"
             app:strokeColor="@color/surface"
             android:backgroundTint="@android:color/transparent"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="1dp"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGoogle"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:text="Continue with Google"
             android:textColor="@color/surface"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:icon="@drawable/ic_gmail"
-            app:iconSize="20dp"
-            app:iconPadding="12dp"
-            app:iconTint="@null"
             app:cornerRadius="12dp"
             app:strokeWidth="2dp"
             app:strokeColor="@color/surface"
             android:backgroundTint="@android:color/transparent"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="1dp"/>
 
-        <com.google.android.material.button.MaterialButton
+        <!--<com.google.android.material.button.MaterialButton
             android:id="@+id/btnFacebook"
             android:layout_width="match_parent"
             android:layout_height="56dp"
@@ -108,21 +86,17 @@
             android:textColor="@color/surface"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:icon="@drawable/ic_faecbook"
-            app:iconSize="20dp"
-            app:iconPadding="12dp"
-            app:iconTint="@null"
             app:cornerRadius="12dp"
             app:strokeWidth="2dp"
             app:strokeColor="@color/surface"
             android:backgroundTint="@android:color/transparent"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="12dp"/>-->
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEmail"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:text="Sign up with Email"
             android:textColor="@color/surface"
             android:textSize="16sp"

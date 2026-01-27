@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import android.widget.ImageButton;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
@@ -24,6 +26,17 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle s) {
         super.onCreate(s);
         setContentView(R.layout.activity_login);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        ImageButton btnBackNav = findViewById(R.id.btnBackNav);
+        if (btnBackNav != null) {
+            btnBackNav.setOnClickListener(v -> onBackPressed());
+        }
 
         etEmail = findViewById(R.id.etEmail);
         etPass = findViewById(R.id.etPassword);
@@ -107,7 +120,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void startMain() {
-        startActivity(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
         finish();
     }
 }

@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
@@ -17,6 +18,7 @@ import com.example.fraudulens.utils.AuthHelper;
 import com.facebook.CallbackManager;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.material.textfield.TextInputEditText;
+import android.widget.ImageButton;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -30,6 +32,17 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle s) {
         super.onCreate(s);
         setContentView(R.layout.activity_register);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        ImageButton btnBackNav = findViewById(R.id.btnBackNav);
+        if (btnBackNav != null) {
+            btnBackNav.setOnClickListener(v -> onBackPressed());
+        }
 
         etName = findViewById(R.id.etName);
         etUsername = findViewById(R.id.etUsername);

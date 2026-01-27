@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import android.widget.ImageButton;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
@@ -25,6 +27,17 @@ public class PinLoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_login);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        ImageButton btnBackNav = findViewById(R.id.btnBackNav);
+        if (btnBackNav != null) {
+            btnBackNav.setOnClickListener(v -> onBackPressed());
+        }
 
         loginId = getIntent().getStringExtra(EXTRA_LOGIN_ID);
         if (loginId == null || loginId.trim().isEmpty()) {
@@ -62,6 +75,7 @@ public class PinLoginActivity extends AppCompatActivity {
                 FirebaseHelper.logUserActivity(this, "login_pin_verified");
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("email", FirebaseHelper.getLoggedInEmail(this));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
             } else {
@@ -107,6 +121,22 @@ public class PinLoginActivity extends AppCompatActivity {
                     }
                 }
             });
+        }
+
+        Button btnBackspace = findViewById(R.id.btnBackspace);
+        if (btnBackspace != null) {
+            btnBackspace.setOnClickListener(v -> clearLastDigit());
+        }
+    }
+
+    private void clearLastDigit() {
+        for (int i = pinInputs.length - 1; i >= 0; i--) {
+            TextInputEditText input = pinInputs[i];
+            if (input.getText() != null && !input.getText().toString().isEmpty()) {
+                input.setText("");
+                input.requestFocus();
+                break;
+            }
         }
     }
 }

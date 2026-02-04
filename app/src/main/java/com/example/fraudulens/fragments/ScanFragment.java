@@ -42,7 +42,7 @@ public class ScanFragment extends Fragment {
                 return;
             }
 
-            boolean scam = ScamDetector.isScam(txt);
+            boolean scam = ScamDetector.isScam(requireContext(), txt);
             cardResult.setVisibility(View.VISIBLE);
 
             if (scam) {
@@ -71,7 +71,7 @@ public class ScanFragment extends Fragment {
         String uid = (email != null) ? email : "anonymous";
 
 
-        boolean isScam = ScamDetector.isScam(txt);
+        boolean isScam = ScamDetector.isScam(requireContext(), txt);
 
         // ✅ Fixed: Using Firestore Timestamp instead of long
         Report r = new Report(
@@ -86,6 +86,7 @@ public class ScanFragment extends Fragment {
             if (getActivity() != null)
                 getActivity().runOnUiThread(() -> {
                     if (ok) {
+                        FirebaseHelper.addTrainingSample(requireContext(), txt, true, "scan_report");
                         Toast.makeText(getContext(), "✅ Report submitted successfully!", Toast.LENGTH_SHORT).show();
                         etMessage.setText("");
                         cardResult.setVisibility(View.GONE);

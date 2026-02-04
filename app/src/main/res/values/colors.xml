@@ -20,6 +20,7 @@
     <color name="bgEnd">#2F08F1</color>
     <color name="bgCenter">#1BB8F6</color>
     <color name="surface">#FFFFFF</color>
+    <color name="white_30">#4DFFFFFF</color>
 
     <!-- Text -->
     <color name="textPrimary">#000000</color>
@@ -34,6 +35,12 @@
     <!-- Status -->
     <color name="danger">#D32F2F</color>
     <color name="transparent">#00000000</color>
+
+    <!-- Switch colors -->
+    <color name="switch_green">#2ECC71</color>
+    <color name="switch_red">#E74C3C</color>
+    <color name="switch_green_track">#802ECC71</color>
+    <color name="switch_red_track">#80E74C3C</color>
 
     <color name="secondaryText">#647283</color>
     <color name="hintText">#647283</color>

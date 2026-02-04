@@ -29,6 +29,17 @@
             android:textColor="@color/textPrimary"
             tools:text="0917-824-1234" />
 
+        <TextView
+            android:id="@+id/tvSource"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="From: Unknown"
+            android:textColor="@color/mutedText"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="From: GCash" />
+
         <!-- Summary -->
         <TextView
             android:id="@+id/tvSummary"

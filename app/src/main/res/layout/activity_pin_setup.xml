@@ -98,7 +98,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin1"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -107,11 +107,11 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin2"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -120,11 +120,11 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin3"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -133,11 +133,11 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin4"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -146,7 +146,7 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"/>
             </LinearLayout>
 
@@ -173,7 +173,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin1"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -182,11 +182,11 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin2"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -195,11 +195,11 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin3"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -208,11 +208,11 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin4"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -221,7 +221,7 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_transparent"
                     android:textColor="@color/textPrimary"/>
             </LinearLayout>
 

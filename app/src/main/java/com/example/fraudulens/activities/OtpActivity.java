@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 import com.example.fraudulens.utils.FirebaseUtils;
+import com.example.fraudulens.utils.PhoneFormatUtil;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
@@ -78,7 +79,7 @@ public class OtpActivity extends AppCompatActivity {
         tvResend = findViewById(R.id.tvResend);
         tvPhoneNumber = findViewById(R.id.tvPhoneNumber);
 
-        tvPhoneNumber.setText(phoneNumber);
+        tvPhoneNumber.setText(PhoneFormatUtil.formatLocal(phoneNumber));
         btnSubmit.setOnClickListener(v -> verifyOtp());
         tvResend.setOnClickListener(v -> resendOtp());
     }

@@ -1,9 +1,12 @@
 package com.example.fraudulens.activities;
 
 import android.content.Intent;
+import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.animation.LinearInterpolator;
+import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
@@ -15,6 +18,15 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_splash);
+
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        if (progressBar != null) {
+            progressBar.setProgress(0);
+            ObjectAnimator animator = ObjectAnimator.ofInt(progressBar, "progress", 0, 100);
+            animator.setDuration(SPLASH_DELAY_MS);
+            animator.setInterpolator(new LinearInterpolator());
+            animator.start();
+        }
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (FirebaseHelper.isLoggedIn(this)) {

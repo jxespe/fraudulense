@@ -36,4 +36,17 @@
     <style name="TextAppearance.Roboto" parent="@android:style/TextAppearance">
         <item name="android:fontFamily">sans-serif</item>
     </style>
+
+    <style name="ShapeAppearanceOverlay.MaterialComponents.Circular" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.FrauduLens.ProfileTopConnected" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">0dp</item>
+        <item name="cornerSizeTopRight">0dp</item>
+        <item name="cornerSizeBottomLeft">20dp</item>
+        <item name="cornerSizeBottomRight">20dp</item>
+    </style>
 </resources>

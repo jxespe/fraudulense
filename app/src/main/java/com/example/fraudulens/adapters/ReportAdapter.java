@@ -20,7 +20,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.Holder> {
     private List<Report> items;
     private final OnItemClick listener;
 
-    public interface OnItemClick { void onClick(String reportId); }
+    public interface OnItemClick { void onClick(Report report); }
 
     public ReportAdapter(List<Report> items, OnItemClick listener) {
         this.items = items;
@@ -51,6 +51,12 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.Holder> {
 
         holder.tvSummary.setText(r.getResult() != null ? r.getResult() : "No analysis result");
         holder.tvStatus.setText(r.getStatus() != null ? r.getStatus() : "Unknown");
+        if (r.getSource() != null && !r.getSource().trim().isEmpty()) {
+            holder.tvSource.setVisibility(View.VISIBLE);
+            holder.tvSource.setText("From: " + r.getSource());
+        } else {
+            holder.tvSource.setVisibility(View.GONE);
+        }
 
         // ✅ Safely handle Firestore Timestamp
         Timestamp ts = r.getTimestamp();
@@ -62,7 +68,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.Holder> {
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) listener.onClick(r.getId());
+            if (listener != null) listener.onClick(r);
         });
     }
 
@@ -72,11 +78,12 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.Holder> {
     }
 
     static class Holder extends RecyclerView.ViewHolder {
-        TextView tvTarget, tvSummary, tvStatus, tvTimestamp;
+        TextView tvTarget, tvSource, tvSummary, tvStatus, tvTimestamp;
 
         Holder(@NonNull View v) {
             super(v);
             tvTarget = v.findViewById(R.id.tvTarget);
+            tvSource = v.findViewById(R.id.tvSource);
             tvSummary = v.findViewById(R.id.tvSummary);
             tvStatus = v.findViewById(R.id.tvStatus);
             tvTimestamp = v.findViewById(R.id.tvTimestamp);

@@ -18,23 +18,14 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:padding="16dp"
-            android:background="@drawable/gradient_bg">
-
-            <ImageView
-                android:id="@+id/ivProfilePic"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_profile"
-                android:background="@drawable/bg_circle"
-                android:padding="4dp"
-                android:layout_marginEnd="12dp"/>
+            android:background="@color/surface">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="FrauduLens"
-                android:textColor="@color/surface"
+                android:text="@string/app_name"
+                android:textColor="@color/textPrimary"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
 
@@ -43,7 +34,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_help"
-                android:tint="@color/surface"
+                android:tint="@color/textPrimary"
                 android:padding="4dp"
                 android:clickable="true"
                 android:focusable="true"
@@ -57,51 +48,69 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tvGreeting"
+            <LinearLayout
+                android:id="@+id/layoutGreeting"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="Hello Mike!"
-                android:textColor="@color/textPrimary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivGreetingProfile"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/ic_profile"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.Circular" />
+
+                <TextView
+                    android:id="@+id/tvGreeting"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="@string/home_greeting_placeholder"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Daily Report Card -->
-            <com.google.android.material.card.MaterialCardView
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/colorPurple"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="10dp"
-                app:cardUseCompatPadding="true">
+                android:layout_marginBottom="16dp">
 
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardDailyReport"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <View
-                        android:id="@+id/viewDailyDot"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:background="@drawable/bg_circle"
-                        android:backgroundTint="@color/danger" />
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:cardBackgroundColor="@color/colorPurple"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="10dp"
+                    app:cardUseCompatPadding="true">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Daily Report"
+                            android:text="@string/home_daily_report"
                             android:textColor="@color/surface"
                             android:textSize="14sp" />
 
@@ -111,23 +120,36 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:alpha="0.85"
-                            android:text="• 3 SCAMS DETECTED"
+                            android:text="@string/home_scams_detected_placeholder"
                             android:textColor="@color/surface"
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tvViewDetails"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="View Details"
-                        android:textColor="@color/surface"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:id="@+id/tvViewDetails"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="@string/home_view_details"
+                            android:textColor="@color/surface"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <View
+                    android:id="@+id/viewDailyDot"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_circle"
+                    android:backgroundTint="@color/danger"
+                    android:translationY="-6dp"
+                    android:translationX="6dp" />
+            </FrameLayout>
 
             <!-- Premium Section -->
             <TextView
@@ -139,7 +161,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
-                android:text="Buy Fraudulens Premium"
+                android:text="@string/home_buy_premium"
                 android:textColor="@color/colorBlue"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -181,7 +203,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:text="SEE SCAM\nALERTS"
+                            android:text="@string/home_see_scam_alerts"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
                             android:lineSpacingExtra="0dp"
@@ -223,7 +245,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:text="REPORT A\nSCAM"
+                            android:text="@string/home_report_scam"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
                             android:lineSpacingExtra="0dp"
@@ -261,7 +283,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:text="FRAUD\nPREVENTION TIPS"
+                            android:text="@string/home_fraud_prevention"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
                             android:lineSpacingExtra="0dp"
@@ -303,7 +325,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:text="TRUSTED\nCONTACTS"
+                            android:text="@string/home_trusted_contacts"
                             android:textColor="@color/surface"
                             android:textSize="12sp"
                             android:lineSpacingExtra="0dp"

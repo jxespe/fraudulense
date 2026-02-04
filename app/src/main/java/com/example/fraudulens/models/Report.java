@@ -14,6 +14,7 @@ public class Report {
     private String result;    // detection result (e.g., "Phishing", "Legit")
     private Timestamp timestamp;
     private String status;    // e.g., "Open", "Resolved", "Under Review"
+    private String source;    // sender/source for SMS-based reports
 
     public Report() {
         // Needed for Firestore deserialization
@@ -49,6 +50,9 @@ public class Report {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
     // --- Firestore map conversion ---
     public Map<String, Object> toMap() {
         Map<String, Object> m = new HashMap<>();
@@ -57,6 +61,7 @@ public class Report {
         m.put("result", result);
         m.put("timestamp", timestamp != null ? timestamp : Timestamp.now());
         m.put("status", status);
+        if (source != null) m.put("source", source);
         return m;
     }
 }

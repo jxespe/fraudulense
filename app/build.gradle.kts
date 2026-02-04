@@ -36,6 +36,12 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 dependencies {
@@ -54,12 +60,22 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-storage")
     
     // ✅ Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
     
     // ✅ Facebook Login
     implementation("com.facebook.android:facebook-login:17.0.0")
+
+    // ✅ On-device ML (TensorFlow Lite)
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+
+    // ✅ On-device OCR (ML Kit)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
+    // ✅ In-app image cropper
+    implementation("com.github.yalantis:ucrop:2.2.8")
 
     // ✅ Testing
     testImplementation("junit:junit:4.13.2")

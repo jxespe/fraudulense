@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_language">アプリの言語</string>
+    <string name="language_english">英語 (English)</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_mandarin">中国語 (中文)</string>
+
+    <string name="community_search_hint">検索...</string>
+    <string name="community_post_here">ここに投稿...</string>
+    <string name="community_sort_by">並び替え:</string>
+    <string name="community_sort_date">日付</string>
+    <string name="community_sort_relevance">関連度</string>
+
+    <string name="profile_phone_placeholder">+63 9xx xxx xxxx</string>
+    <string name="profile_verified">確認済み</string>
+    <string name="profile_not_verified">未確認</string>
+    <string name="profile_unknown_user">不明なユーザー</string>
+    <string name="profile_no_phone">電話番号なし</string>
+    <string name="profile_upload_failed">アップロードに失敗しました。もう一度お試しください。</string>
+    <string name="profile_menu_linked_accounts">連携アカウント</string>
+    <string name="profile_menu_settings">設定</string>
+    <string name="profile_menu_terms">利用規約</string>
+    <string name="profile_menu_privacy">プライバシー設定</string>
+    <string name="profile_menu_premium">FrauduLens プレミアム</string>
+    <string name="profile_menu_help">ヘルプ</string>
+    <string name="profile_menu_logout">ログアウト</string>
+
+    <string name="home_greeting_placeholder">こんにちは</string>
+    <string name="home_greeting">こんにちは、%1$s！</string>
+    <string name="home_daily_report">デイリーレポート</string>
+    <string name="home_scams_detected">• %1$d 件の詐欺を検出</string>
+    <string name="home_scams_detected_placeholder">• 0 件の詐欺を検出</string>
+    <string name="home_view_details">詳細を見る</string>
+    <string name="home_buy_premium">FrauduLens プレミアムを購入</string>
+    <string name="home_see_scam_alerts">詐欺アラートを\n見る</string>
+    <string name="home_report_scam">詐欺を\n報告</string>
+    <string name="home_fraud_prevention">詐欺防止の\nヒント</string>
+    <string name="home_trusted_contacts">信頼できる\n連絡先</string>
+
+    <string name="settings_realtime_scam_alerts">リアルタイム詐欺アラート</string>
+    <string name="settings_permissions">権限</string>
+    <string name="settings_phone_access">電話へのアクセス</string>
+    <string name="settings_sms_access">SMS/MMS へのアクセス</string>
+    <string name="settings_email_access">メールへのアクセス</string>
+    <string name="settings_contacts_access">連絡先へのアクセス</string>
+    <string name="settings_password_security">パスワードとセキュリティ</string>
+    <string name="settings_change_pin">PIN を変更</string>
+    <string name="settings_require_pin_on_launch">起動時に PIN を要求</string>
+    <string name="settings_security_alerts">セキュリティアラート</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_push_notifications">プッシュ通知</string>
+    <string name="settings_community_updates">コミュニティ更新</string>
+    <string name="settings_report_updates">レポート更新</string>
+    <string name="settings_scam_alerts">詐欺アラート</string>
+    <string name="settings_email_notifications">メール通知</string>
+    <string name="settings_appearance">外観</string>
+    <string name="settings_light_mode">（ライトモード）</string>
+    <string name="settings_manage_blocked_numbers">ブロック番号の管理</string>
+    <string name="settings_email_access_enabled">メールアクセスを有効にしました。</string>
+    <string name="settings_permission_denied">権限が拒否されました。システム設定で有効にしてください。</string>
+</resources>

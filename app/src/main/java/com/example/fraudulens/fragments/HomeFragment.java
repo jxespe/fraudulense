@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.view.*;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -23,7 +24,10 @@ import com.example.fraudulens.activities.ScamMessagesActivity;
 import com.example.fraudulens.activities.TrustedContactsActivity;
 import com.example.fraudulens.receivers.SmsReceiver;
 import com.example.fraudulens.utils.ScamDetector;
-import com.google.firebase.firestore.*;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.squareup.picasso.Picasso;
 
 public class HomeFragment extends Fragment {
     private static final int REQ_READ_SMS = 2001;
@@ -32,6 +36,8 @@ public class HomeFragment extends Fragment {
     TextView tvViewDetails;
     TextView tvDailyCount;
     View viewDailyDot;
+    ImageView ivGreetingProfile;
+    View cardDailyReport;
     View cardTrustedContacts;
     View cardReportScam;
     ListenerRegistration reg;
@@ -51,35 +57,35 @@ public class HomeFragment extends Fragment {
         
         // Initialize views that exist in the layout
         tvGreeting = v.findViewById(R.id.tvGreeting);
+        ivGreetingProfile = v.findViewById(R.id.ivGreetingProfile);
         tvBuyPremium = v.findViewById(R.id.tvBuyPremium);
         tvViewDetails = v.findViewById(R.id.tvViewDetails);
         tvDailyCount = v.findViewById(R.id.tvDailyCount);
         viewDailyDot = v.findViewById(R.id.viewDailyDot);
+        cardDailyReport = v.findViewById(R.id.cardDailyReport);
         cardTrustedContacts = v.findViewById(R.id.cardTrustedContacts);
         cardReportScam = v.findViewById(R.id.cardReportScam);
         
         // Update greeting with user's first name if available
         String userEmail = FirebaseHelper.getLoggedInEmail(getContext());
         if (userEmail != null && tvGreeting != null) {
-            FirebaseFirestore.getInstance()
+            reg = FirebaseFirestore.getInstance()
                     .collection("users")
                     .whereEqualTo("email", userEmail.toLowerCase())
                     .limit(1)
-                    .get()
-                    .addOnSuccessListener(snapshot -> {
-                        if (!snapshot.isEmpty()) {
-                            String fullName = snapshot.getDocuments().get(0).getString("name");
-                            String firstName = extractFirstName(fullName, userEmail);
-                            tvGreeting.setText("Hello, " + firstName + "!");
-                        } else {
-                            String firstName = extractFirstName(null, userEmail);
-                            tvGreeting.setText("Hello, " + firstName + "!");
+                    .addSnapshotListener((snapshot, error) -> {
+                        if (error != null) {
+                            applyGreetingFallback(userEmail);
+                            return;
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        String firstName = extractFirstName(null, userEmail);
-                        tvGreeting.setText("Hello, " + firstName + "!");
+                        if (snapshot != null && !snapshot.isEmpty()) {
+                            applyGreetingSnapshot(snapshot.getDocuments().get(0), userEmail);
+                        } else {
+                            applyGreetingFallback(userEmail);
+                        }
                     });
+        } else if (tvGreeting != null) {
+            applyGreetingFallback(null);
         }
 
         if (tvBuyPremium != null) {
@@ -91,6 +97,13 @@ public class HomeFragment extends Fragment {
 
         if (tvViewDetails != null) {
             tvViewDetails.setOnClickListener(view -> {
+                if (getContext() == null) return;
+                startActivity(new Intent(getContext(), ScamMessagesActivity.class));
+            });
+        }
+
+        if (cardDailyReport != null) {
+            cardDailyReport.setOnClickListener(view -> {
                 if (getContext() == null) return;
                 startActivity(new Intent(getContext(), ScamMessagesActivity.class));
             });
@@ -139,13 +152,13 @@ public class HomeFragment extends Fragment {
         if (tvDailyCount == null || getContext() == null) return;
         if (!hasSmsPermission()) {
             requestSmsPermission();
-            tvDailyCount.setText("• 0 SCAMS DETECTED");
+            tvDailyCount.setText(getString(R.string.home_scams_detected, 0));
             if (viewDailyDot != null) viewDailyDot.setVisibility(View.GONE);
             return;
         }
 
         int count = countScamMessagesSinceLastSeen();
-        tvDailyCount.setText("• " + count + " SCAMS DETECTED");
+        tvDailyCount.setText(getString(R.string.home_scams_detected, count));
         if (viewDailyDot != null) {
             viewDailyDot.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
         }
@@ -169,7 +182,7 @@ public class HomeFragment extends Fragment {
                     if (FirebaseHelper.isTrustedMessage(requireContext(), address, body)) {
                         continue;
                     }
-                    if (ScamDetector.isScam(body)) {
+                    if (ScamDetector.isScam(requireContext(), body)) {
                         count++;
                     }
                 }
@@ -201,6 +214,28 @@ public class HomeFragment extends Fragment {
             return emailFallback.split("@")[0];
         }
         return "there";
+    }
+
+    private void applyGreetingSnapshot(DocumentSnapshot doc, String userEmail) {
+        String fullName = doc.getString("name");
+        String photoUrl = doc.getString("photoUrl");
+        String firstName = extractFirstName(fullName, userEmail);
+        tvGreeting.setText(getString(R.string.home_greeting, firstName));
+        if (ivGreetingProfile != null) {
+            if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                Picasso.get().load(photoUrl).placeholder(R.drawable.ic_profile).into(ivGreetingProfile);
+            } else {
+                ivGreetingProfile.setImageResource(R.drawable.ic_profile);
+            }
+        }
+    }
+
+    private void applyGreetingFallback(String userEmail) {
+        String firstName = extractFirstName(null, userEmail);
+        tvGreeting.setText(getString(R.string.home_greeting, firstName));
+        if (ivGreetingProfile != null) {
+            ivGreetingProfile.setImageResource(R.drawable.ic_profile);
+        }
     }
 
     @Override

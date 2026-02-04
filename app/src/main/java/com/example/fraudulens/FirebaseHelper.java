@@ -7,6 +7,8 @@ import android.util.Log;
 import com.example.fraudulens.utils.PasswordUtil;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.firestore.*;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,7 @@ public class FirebaseHelper {
 
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private static final String TAG = "FirebaseHelper";
+    private static final String STORAGE_BUCKET = "gs://fraudulense.firebasestorage.app";
 
     // ───────────── SESSION (LOCAL LOGIN) ─────────────
 
@@ -539,6 +542,59 @@ public class FirebaseHelper {
                 });
     }
 
+    /** Update user photo URL */
+    public static void updateUserPhotoUrl(String email, String photoUrl, SimpleCallback<Boolean> cb) {
+        if (email == null || email.trim().isEmpty()) {
+            cb.onComplete(false);
+            return;
+        }
+        final String normalizedEmail = email.trim().toLowerCase();
+        db.collection("users")
+                .whereEqualTo("email", normalizedEmail)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
+                        Log.e(TAG, "User not found for photo update: " + normalizedEmail);
+                        cb.onComplete(false);
+                        return;
+                    }
+                    String docId = snapshot.getDocuments().get(0).getId();
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("photoUrl", photoUrl);
+                    db.collection("users")
+                            .document(docId)
+                            .update(updates)
+                            .addOnSuccessListener(v -> {
+                                updatePostsPhoto(docId, photoUrl);
+                                cb.onComplete(true);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to update photo url", e);
+                                cb.onComplete(false);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error finding user for photo update", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    private static void updatePostsPhoto(String userId, String photoUrl) {
+        if (userId == null || userId.trim().isEmpty()) return;
+        db.collection("posts")
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    for (DocumentSnapshot doc : snap.getDocuments()) {
+                        db.collection("posts")
+                                .document(doc.getId())
+                                .update("userPhotoUrl", photoUrl);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update post photos", e));
+    }
+
     /** LOGIN - Supports both email and username */
     public static void login(
             Context ctx,
@@ -896,6 +952,21 @@ public class FirebaseHelper {
 
     // ───────────── REPORTS ─────────────
 
+    public static void addTrainingSample(Context ctx, String text, boolean isScam, String source) {
+        if (ctx == null || text == null || text.trim().isEmpty()) return;
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("text", text.trim());
+        payload.put("label", isScam ? 1 : 0);
+        payload.put("source", source != null ? source : "unknown");
+        payload.put("timestamp", FieldValue.serverTimestamp());
+        payload.put("user", getLoggedInEmail(ctx) != null ? getLoggedInEmail(ctx) : "anonymous");
+        payload.put("appVersion", BuildConfig.VERSION_NAME);
+
+        db.collection("ml_training_samples")
+                .add(payload)
+                .addOnFailureListener(e -> Log.e(TAG, "addTrainingSample failed", e));
+    }
+
     public static void addReport(Map<String, Object> data, SimpleCallback<Boolean> cb) {
         db.collection("reports")
                 .add(data)
@@ -952,6 +1023,133 @@ public class FirebaseHelper {
                 .addOnFailureListener(e -> cb.onComplete(false));
     }
 
+    // ───────────── POSTS (COMMUNITY FEED) ─────────────
+
+    public static void getCurrentUserProfile(Context ctx, SimpleCallback<Map<String, Object>> cb) {
+        String email = getLoggedInEmail(ctx);
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("userId", "anonymous");
+        fallback.put("userName", email != null ? email.split("@")[0] : "Anonymous");
+        fallback.put("userPhotoUrl", null);
+
+        if (email == null || email.trim().isEmpty()) {
+            cb.onComplete(fallback);
+            return;
+        }
+
+        db.collection("users")
+                .whereEqualTo("email", email.toLowerCase())
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
+                        cb.onComplete(fallback);
+                        return;
+                    }
+                    DocumentSnapshot doc = snapshot.getDocuments().get(0);
+                    String name = doc.getString("name");
+                    if (name == null || name.trim().isEmpty()) {
+                        name = doc.getString("username");
+                    }
+                    if (name == null || name.trim().isEmpty()) {
+                        name = email.split("@")[0];
+                    }
+                    Map<String, Object> profile = new HashMap<>();
+                    profile.put("userId", doc.getId());
+                    profile.put("userName", name);
+                    profile.put("userPhotoUrl", doc.getString("photoUrl"));
+                    cb.onComplete(profile);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "getCurrentUserProfile failed", e);
+                    cb.onComplete(fallback);
+                });
+    }
+
+    public static void addPost(Map<String, Object> data, SimpleCallback<Boolean> cb) {
+        db.collection("posts")
+                .add(data)
+                .addOnSuccessListener(d -> cb.onComplete(true))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "addPost failed", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    public static ListenerRegistration listenPosts(EventListener<QuerySnapshot> listener) {
+        return db.collection("posts")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener(listener);
+    }
+
+    public static void setLikeOnPost(String postId, String userKey, boolean like, SimpleCallback<Boolean> cb) {
+        if (postId == null || userKey == null) {
+            cb.onComplete(false);
+            return;
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("likes", like ? FieldValue.arrayUnion(userKey) : FieldValue.arrayRemove(userKey));
+        updates.put("likeCount", FieldValue.increment(like ? 1 : -1));
+
+        db.collection("posts")
+                .document(postId)
+                .update(updates)
+                .addOnSuccessListener(v -> cb.onComplete(true))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "setLikeOnPost failed", e);
+                    cb.onComplete(false);
+                });
+    }
+
+    public static void addCommentToPost(String postId, Map<String, Object> comment, SimpleCallback<Boolean> cb) {
+        if (postId == null || comment == null) {
+            cb.onComplete(false);
+            return;
+        }
+        db.collection("posts")
+                .document(postId)
+                .collection("comments")
+                .add(comment)
+                .addOnSuccessListener(d ->
+                        db.collection("posts")
+                                .document(postId)
+                                .update("commentCount", FieldValue.increment(1))
+                                .addOnSuccessListener(v -> cb.onComplete(true))
+                                .addOnFailureListener(e -> cb.onComplete(false)))
+                .addOnFailureListener(e -> cb.onComplete(false));
+    }
+
+    public static void incrementShareCount(String postId) {
+        if (postId == null) return;
+        db.collection("posts")
+                .document(postId)
+                .update("shareCount", FieldValue.increment(1))
+                .addOnFailureListener(e -> Log.e(TAG, "incrementShareCount failed", e));
+    }
+
+    public static void getPostById(String postId, SimpleCallback<DocumentSnapshot> cb) {
+        if (postId == null) {
+            cb.onComplete(null);
+            return;
+        }
+        db.collection("posts")
+                .document(postId)
+                .get()
+                .addOnSuccessListener(cb::onComplete)
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "getPostById failed", e);
+                    cb.onComplete(null);
+                });
+    }
+
+    public static ListenerRegistration listenComments(String postId, EventListener<QuerySnapshot> listener) {
+        return db.collection("posts")
+                .document(postId)
+                .collection("comments")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener(listener);
+    }
+
     // ───────────── ANALYTICS (OPTIONAL) ─────────────
 
     public static void logEvent(String name, Bundle params) {
@@ -959,5 +1157,9 @@ public class FirebaseHelper {
         if (analytics != null) {
             analytics.logEvent(name, params);
         }
+    }
+
+    public static StorageReference getStorageRoot() {
+        return FirebaseStorage.getInstance().getReferenceFromUrl(STORAGE_BUCKET);
     }
 }

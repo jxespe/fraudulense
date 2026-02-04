@@ -23,9 +23,10 @@ public class ReportsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_reports);
         rv = findViewById(R.id.rvReports);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ReportAdapter(new ArrayList<>(), id -> {
+        adapter = new ReportAdapter(new ArrayList<>(), report -> {
+            if (report == null || report.getId() == null) return;
             Intent i = new Intent(this, DetailsActivity.class);
-            i.putExtra("reportId", id);
+            i.putExtra("reportId", report.getId());
             startActivity(i);
         });
         rv.setAdapter(adapter);

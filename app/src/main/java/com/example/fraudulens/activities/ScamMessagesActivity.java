@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.app.AlertDialog;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +62,7 @@ public class ScamMessagesActivity extends AppCompatActivity {
                     new Timestamp(new Date(date)),
                     "sms"
             );
+            r.setSource(address);
             items.add(0, r);
             adapter.update(new ArrayList<>(items));
             tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
@@ -81,7 +83,7 @@ public class ScamMessagesActivity extends AppCompatActivity {
         rvScamMessages = findViewById(R.id.rvScamMessages);
         tvEmpty = findViewById(R.id.tvEmpty);
         rvScamMessages.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ReportAdapter(new ArrayList<>(), null);
+        adapter = new ReportAdapter(new ArrayList<>(), report -> showMessageDialog(report));
         rvScamMessages.setAdapter(adapter);
 
         if (hasSmsPermission()) {
@@ -115,7 +117,7 @@ public class ScamMessagesActivity extends AppCompatActivity {
                     if (FirebaseHelper.isTrustedMessage(this, address, body)) {
                         continue;
                     }
-                    if (ScamDetector.isScam(body)) {
+                    if (ScamDetector.isScam(this, body)) {
                         Report r = new Report(
                                 "sms",
                                 body,
@@ -123,6 +125,7 @@ public class ScamMessagesActivity extends AppCompatActivity {
                                 new Timestamp(new Date(date)),
                                 "sms"
                         );
+                        r.setSource(address);
                         items.add(r);
                     }
                 }
@@ -133,6 +136,17 @@ public class ScamMessagesActivity extends AppCompatActivity {
 
         adapter.update(new ArrayList<>(items));
         tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
+    }
+
+    private void showMessageDialog(Report report) {
+        if (report == null) return;
+        String source = report.getSource() != null ? report.getSource() : "Unknown";
+        String message = report.getMessage() != null ? report.getMessage() : "";
+        new AlertDialog.Builder(this)
+                .setTitle("From: " + source)
+                .setMessage(message)
+                .setPositiveButton("Close", null)
+                .show();
     }
 
     @Override

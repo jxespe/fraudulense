@@ -39,7 +39,7 @@ public class SmsReceiver extends BroadcastReceiver {
         if (com.example.fraudulens.FirebaseHelper.isTrustedMessage(context, address, body)) {
             return;
         }
-        if (!ScamDetector.isScam(body)) {
+        if (!ScamDetector.isScam(context, body)) {
             return;
         }
 

@@ -72,14 +72,39 @@
 
                         <TextView
                             android:id="@+id/tvResultTitle"
+                            style="@style/TextAppearance.FrauduLens.Title"
                             android:text="Result"
-                            android:textStyle="bold"
-                            android:textSize="16sp" />
+                            />
 
                         <TextView
                             android:id="@+id/tvResultSummary"
                             android:text="Detected: Potential Scam"
                             android:layout_marginTop="6dp" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutFeedback"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnMarkScam"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/mark_as_scam"
+                                android:backgroundTint="@color/secondaryColor" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnMarkSafe"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:text="@string/mark_as_safe"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnReportFromScan"

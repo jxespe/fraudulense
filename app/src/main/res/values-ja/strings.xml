@@ -19,6 +19,7 @@
     <string name="profile_upload_failed">アップロードに失敗しました。もう一度お試しください。</string>
     <string name="profile_menu_linked_accounts">連携アカウント</string>
     <string name="profile_menu_settings">設定</string>
+    <string name="settings_title">設定</string>
     <string name="profile_menu_terms">利用規約</string>
     <string name="profile_menu_privacy">プライバシー設定</string>
     <string name="profile_menu_premium">FrauduLens プレミアム</string>
@@ -58,4 +59,18 @@
     <string name="settings_manage_blocked_numbers">ブロック番号の管理</string>
     <string name="settings_email_access_enabled">メールアクセスを有効にしました。</string>
     <string name="settings_permission_denied">権限が拒否されました。システム設定で有効にしてください。</string>
+    <string name="scan_enter_message">解析するメッセージを入力してください。</string>
+    <string name="mark_as_scam">詐欺として報告</string>
+    <string name="mark_as_safe">安全としてマーク</string>
+    <string name="report_scam">詐欺を報告</string>
+    <string name="feedback_marked_scam">ありがとうございます。詐欺報告として学習に使用します。</string>
+    <string name="feedback_marked_safe">安全として記録しました。学習に使用します。</string>
+    <string name="close">閉じる</string>
+    <string name="no_result_found">結果が見つかりません</string>
+    <string name="scam_filter_title">詐欺メッセージ</string>
+    <string name="back">戻る</string>
+    <string name="new_password">新しいパスワード</string>
+    <string name="confirm_password">パスワードの確認</string>
+    <string name="reset_password">パスワードをリセット</string>
+    <string name="continue_label">続行</string>
 </resources>

@@ -1,9 +1,15 @@
 package com.example.fraudulens.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
@@ -35,11 +41,21 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // 🔒 Firebase Auth REMOVED — custom auth in use
-        Toast.makeText(
-                this,
-                "Password reset is not available.\nPlease contact support or register again.",
-                Toast.LENGTH_LONG
-        ).show();
+        btnSendReset.setEnabled(false);
+        FirebaseHelper.checkExistingAccountProvider(email, provider -> runOnUiThread(() -> {
+            btnSendReset.setEnabled(true);
+            if (provider == null) {
+                Toast.makeText(this, "No account found for this email", Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (!"password".equals(provider)) {
+                String providerName = provider.substring(0, 1).toUpperCase() + provider.substring(1);
+                Toast.makeText(this, "Please sign in with " + providerName + ".", Toast.LENGTH_LONG).show();
+                return;
+            }
+            Intent i = new Intent(this, ResetPasswordActivity.class);
+            i.putExtra(ResetPasswordActivity.EXTRA_EMAIL, email);
+            startActivity(i);
+        }));
     }
 }

@@ -1,0 +1,13 @@
+{
+  "name": "fraudulens-functions",
+  "description": "Backend training pipeline for FrauduLens scam detection",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.2.0",
+    "firebase-functions": "^4.6.0"
+  }
+}

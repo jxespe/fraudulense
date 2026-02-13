@@ -39,14 +39,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="8dp"
+            style="@style/TextAppearance.FrauduLens.Title"
             android:includeFontPadding="true"
             android:minHeight="24dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
             android:text="Sign-up"
-            android:textColor="@color/surface"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textColor="@color/surface" />
     </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
@@ -67,10 +66,9 @@
                 android:id="@+id/tvTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                style="@style/TextAppearance.FrauduLens.Title"
                 android:text="OTP Verification"
                 android:textColor="@color/surface"
-                android:textSize="28sp"
-                android:textStyle="bold"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -39,14 +39,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="8dp"
+            style="@style/TextAppearance.FrauduLens.Title"
             android:includeFontPadding="true"
             android:minHeight="24dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
             android:text="Create Profile"
-            android:textColor="@color/surface"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textColor="@color/surface" />
     </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
@@ -87,12 +86,13 @@
 
                 <ImageView
                     android:id="@+id/imgLogo"
-                    android:layout_width="300dp"
-                    android:layout_height="100dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="16dp"
+                    android:adjustViewBounds="true"
                     android:scaleType="fitXY"
-                    android:src="@drawable/flbg" />
+                    android:src="@drawable/ic_logo_blue" />
 
                 <TextView
                     android:id="@+id/tvTitle"
@@ -100,10 +100,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:gravity="center"
+                    style="@style/TextAppearance.FrauduLens.Title"
                     android:text="Create Account"
                     android:textColor="@color/surface"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
+                    />
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

@@ -28,10 +28,9 @@
             android:id="@+id/tvHeaderTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            style="@style/TextAppearance.FrauduLens.Title"
             android:text="FrauduLense"
-            android:textColor="@color/surface"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textColor="@color/surface" />
 
         <LinearLayout
             android:layout_width="wrap_content"

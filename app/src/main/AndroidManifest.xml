@@ -63,6 +63,14 @@
             android:exported="false" />
 
         <activity
+            android:name=".activities.ForgotPasswordActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.ResetPasswordActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".activities.RegisterActivity"
             android:exported="false" />
 
@@ -115,6 +123,10 @@
         <!-- Report Scam -->
         <activity
             android:name=".activities.ReportScamActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.FilteredReportsActivity"
             android:exported="false" />
 
         <!-- Comments -->

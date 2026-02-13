@@ -409,6 +409,41 @@ public class FirebaseHelper {
                 });
     }
 
+    /**
+     * Reset password for a local (password) account.
+     */
+    public static void resetPassword(
+            String email,
+            String newPassword,
+            SimpleCallback<Boolean> cb
+    ) {
+        final String normalizedEmail = email.trim().toLowerCase();
+        final String hash = PasswordUtil.hashPassword(newPassword.trim());
+        db.collection("users")
+                .whereEqualTo("email", normalizedEmail)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
+                        cb.onComplete(false);
+                        return;
+                    }
+                    String docId = snapshot.getDocuments().get(0).getId();
+                    db.collection("users")
+                            .document(docId)
+                            .update("passwordHash", hash, "passwordUpdatedAt", FieldValue.serverTimestamp())
+                            .addOnSuccessListener(x -> cb.onComplete(true))
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "resetPassword update failed", e);
+                                cb.onComplete(false);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "resetPassword lookup failed", e);
+                    cb.onComplete(false);
+                });
+    }
+
     /** Helper method to create user document */
     private static void createUser(
             String name,

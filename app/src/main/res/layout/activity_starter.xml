@@ -15,7 +15,7 @@
     <ImageView
         android:id="@+id/imgLogo"
         android:layout_width="300dp"
-        android:layout_height="100dp"
+        android:layout_height="120dp"
         android:src="@drawable/flbg"
         android:scaleType="fitXY"
         app:layout_constraintTop_toTopOf="parent"
@@ -29,12 +29,14 @@
             android:layout_height="wrap_content"
             android:alpha="0.9"
             android:gravity="center"
-            android:text="Just a few quick things to get started."
+            android:text="@string/just_a_few_quick_things_to_get_started"
             android:textColor="@color/surface"
             android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imgLogo"
+            app:layout_constraintBottom_toTopOf="@id/llButtons"
             app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="279dp" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
 
     <LinearLayout
         android:id="@+id/llButtons"

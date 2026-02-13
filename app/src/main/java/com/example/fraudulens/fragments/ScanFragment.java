@@ -21,6 +21,7 @@ import com.google.firebase.Timestamp;
 public class ScanFragment extends Fragment {
     private EditText etMessage;
     private Button btnDetect, btnReport;
+    private Button btnMarkScam, btnMarkSafe;
     private View cardResult;
     private TextView tvResultTitle, tvResultSummary;
 
@@ -34,11 +35,13 @@ public class ScanFragment extends Fragment {
         tvResultTitle = v.findViewById(R.id.tvResultTitle);
         tvResultSummary = v.findViewById(R.id.tvResultSummary);
         btnReport = v.findViewById(R.id.btnReportFromScan);
+        btnMarkScam = v.findViewById(R.id.btnMarkScam);
+        btnMarkSafe = v.findViewById(R.id.btnMarkSafe);
 
         btnDetect.setOnClickListener(x -> {
             String txt = etMessage.getText().toString().trim();
             if (txt.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter a message to analyze.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.scan_enter_message), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -55,14 +58,31 @@ public class ScanFragment extends Fragment {
         });
 
         btnReport.setOnClickListener(x -> handleReport());
+        btnMarkScam.setOnClickListener(x -> handleFeedback(true));
+        btnMarkSafe.setOnClickListener(x -> handleFeedback(false));
 
         return v;
+    }
+
+    private void handleFeedback(boolean isScam) {
+        String txt = etMessage.getText().toString().trim();
+        if (txt.isEmpty()) {
+            Toast.makeText(getContext(), getString(R.string.scan_enter_message), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        FirebaseHelper.addTrainingSample(requireContext(), txt, isScam, "scan_feedback");
+        FirebaseHelper.logUserActivity(requireContext(), isScam ? "scan_marked_scam" : "scan_marked_safe");
+        Toast.makeText(
+                getContext(),
+                getString(isScam ? R.string.feedback_marked_scam : R.string.feedback_marked_safe),
+                Toast.LENGTH_SHORT
+        ).show();
     }
 
     private void handleReport() {
         String txt = etMessage.getText().toString().trim();
         if (txt.isEmpty()) {
-            Toast.makeText(getContext(), "Enter the message to report.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.scan_enter_message), Toast.LENGTH_SHORT).show();
             return;
         }
 

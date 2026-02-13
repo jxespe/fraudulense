@@ -39,6 +39,14 @@
     <string name="profile_upload_failed">Upload failed. Try again.</string>
     <string name="profile_menu_linked_accounts">My Linked Accounts</string>
     <string name="profile_menu_settings">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="no_result_found">No result found</string>
+    <string name="scam_filter_title">Scam Messages</string>
+    <string name="back">Back</string>
+    <string name="new_password">New password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="reset_password">Reset password</string>
+    <string name="continue_label">Continue</string>
     <string name="profile_menu_terms">Terms &amp; Conditions</string>
     <string name="profile_menu_privacy">Privacy Choices</string>
     <string name="profile_menu_premium">FrauduLens Premium</string>
@@ -78,6 +86,13 @@
     <string name="settings_manage_blocked_numbers">Manage Blocked Numbers</string>
     <string name="settings_email_access_enabled">Email access enabled.</string>
     <string name="settings_permission_denied">Permission denied. Enable it in system settings.</string>
+    <string name="scan_enter_message">Enter the message to analyze.</string>
+    <string name="mark_as_scam">Mark as scam</string>
+    <string name="mark_as_safe">Mark as safe</string>
+    <string name="report_scam">Report scam</string>
+    <string name="feedback_marked_scam">Thanks! We will learn from this scam report.</string>
+    <string name="feedback_marked_safe">Marked safe. We will learn from this.</string>
+    <string name="close">Close</string>
     <!-- Google Sign-In: Get this from Firebase Console > Project Settings > Your Apps > Web App -->
     <string name="default_web_client_id">838199002873-lqa0f36vla792o6nn26dd0t9tkic5gnt.apps.googleusercontent.com</string>
     
@@ -85,4 +100,5 @@
     <string name="facebook_app_id">3215958175243587</string>
     <string name="facebook_client_token">ecf5414a06297c3a820b93773bbc6400</string>
     <string name="fb_login_protocol_scheme">fb3215958175243587</string>
+    <string name="just_a_few_quick_things_to_get_started">Just a few quick things to get started.</string>
 </resources>

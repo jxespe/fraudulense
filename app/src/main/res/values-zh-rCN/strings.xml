@@ -19,6 +19,7 @@
     <string name="profile_upload_failed">上传失败，请重试。</string>
     <string name="profile_menu_linked_accounts">我的关联账号</string>
     <string name="profile_menu_settings">设置</string>
+    <string name="settings_title">设置</string>
     <string name="profile_menu_terms">条款与条件</string>
     <string name="profile_menu_privacy">隐私选项</string>
     <string name="profile_menu_premium">FrauduLens 高级版</string>
@@ -58,4 +59,18 @@
     <string name="settings_manage_blocked_numbers">管理已屏蔽号码</string>
     <string name="settings_email_access_enabled">已启用邮箱访问。</string>
     <string name="settings_permission_denied">权限被拒绝，请在系统设置中启用。</string>
+    <string name="scan_enter_message">请输入要分析的消息。</string>
+    <string name="mark_as_scam">标记为诈骗</string>
+    <string name="mark_as_safe">标记为安全</string>
+    <string name="report_scam">举报诈骗</string>
+    <string name="feedback_marked_scam">谢谢！我们会用于改进检测。</string>
+    <string name="feedback_marked_safe">已标记为安全，我们会从中学习。</string>
+    <string name="close">关闭</string>
+    <string name="no_result_found">未找到结果</string>
+    <string name="scam_filter_title">诈骗消息</string>
+    <string name="back">返回</string>
+    <string name="new_password">新密码</string>
+    <string name="confirm_password">确认密码</string>
+    <string name="reset_password">重置密码</string>
+    <string name="continue_label">继续</string>
 </resources>

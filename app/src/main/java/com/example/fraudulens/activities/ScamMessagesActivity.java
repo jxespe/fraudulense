@@ -145,7 +145,20 @@ public class ScamMessagesActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("From: " + source)
                 .setMessage(message)
-                .setPositiveButton("Close", null)
+                .setPositiveButton(getString(R.string.report_scam), (d, w) -> {
+                    FirebaseHelper.addTrainingSample(this, message, true, "sms_feedback");
+                    FirebaseHelper.logUserActivity(this, "sms_marked_scam");
+                    Toast.makeText(this, getString(R.string.feedback_marked_scam), Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(getString(R.string.mark_as_safe), (d, w) -> {
+                    FirebaseHelper.addTrainingSample(this, message, false, "sms_feedback");
+                    FirebaseHelper.logUserActivity(this, "sms_marked_safe");
+                    items.remove(report);
+                    adapter.update(new ArrayList<>(items));
+                    tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
+                    Toast.makeText(this, getString(R.string.feedback_marked_safe), Toast.LENGTH_SHORT).show();
+                })
+                .setNeutralButton(getString(R.string.close), null)
                 .show();
     }
 

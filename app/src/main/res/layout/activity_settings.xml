@@ -29,16 +29,25 @@
             android:src="@android:drawable/ic_menu_revert"
             android:tint="@color/textPrimary" />
 
+        <TextView
+            android:id="@+id/tvSettingsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            style="@style/TextAppearance.FrauduLens.Title"
+            android:text="@string/settings_title"
+            android:textColor="@color/textPrimary" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="120dp"
+            android:layout_height="70dp"
             android:padding="4dp"
-            android:src="@drawable/flbg" />
+            android:src="@drawable/ic_logo_white" />
     </LinearLayout>
 
     <ScrollView

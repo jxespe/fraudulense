@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20",
+    "environmentVariables": {
+      "TRAINING_ENDPOINT": "https://fraudulens-trainer-838199002873.us-central1.run.app/train",
+      "MIN_TRAIN_SAMPLES": "50",
+      "MAX_TRAIN_SAMPLES": "1000"
+    }
+  }
+}

@@ -129,6 +129,10 @@
             android:name=".activities.FilteredReportsActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".activities.BulkTrainingActivity"
+            android:exported="false" />
+
         <!-- Comments -->
         <activity
             android:name=".activities.CommentsActivity"
@@ -137,6 +141,10 @@
         <!-- Activity Log (Admin) -->
         <activity
             android:name=".activities.ActivityLogActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.ReportsActivity"
             android:exported="false" />
 
         <receiver

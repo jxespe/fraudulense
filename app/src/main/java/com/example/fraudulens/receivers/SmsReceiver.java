@@ -7,6 +7,7 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 
 import com.example.fraudulens.utils.ScamDetector;
+import com.example.fraudulens.FirebaseHelper;
 
 public class SmsReceiver extends BroadcastReceiver {
 
@@ -43,6 +44,7 @@ public class SmsReceiver extends BroadcastReceiver {
             return;
         }
 
+        FirebaseHelper.saveDetectedScamMessage(context, address, body, timestamp);
         Intent broadcast = new Intent(ACTION_SCAM_SMS);
         broadcast.setPackage(context.getPackageName());
         broadcast.putExtra(EXTRA_BODY, body);

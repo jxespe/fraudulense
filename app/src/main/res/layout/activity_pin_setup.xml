@@ -253,9 +253,10 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <GridLayout
-            android:layout_width="231dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:maxWidth="@dimen/form_field_max_width"
             android:alignmentMode="alignMargins"
             android:columnCount="3"
             android:rowCount="4">

@@ -1,5 +1,6 @@
 package com.example.fraudulens.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
+import com.example.fraudulens.activities.BulkTrainingActivity;
 import com.example.fraudulens.models.Report;
 import com.example.fraudulens.utils.ScamDetector;
 import com.google.firebase.Timestamp;
@@ -22,6 +24,8 @@ public class ScanFragment extends Fragment {
     private EditText etMessage;
     private Button btnDetect, btnReport;
     private Button btnMarkScam, btnMarkSafe;
+    private Button btnTrainInbox;
+    private Button btnTrainFromInbox;
     private View cardResult;
     private TextView tvResultTitle, tvResultSummary;
 
@@ -37,6 +41,8 @@ public class ScanFragment extends Fragment {
         btnReport = v.findViewById(R.id.btnReportFromScan);
         btnMarkScam = v.findViewById(R.id.btnMarkScam);
         btnMarkSafe = v.findViewById(R.id.btnMarkSafe);
+        btnTrainInbox = v.findViewById(R.id.btnTrainInbox);
+        btnTrainFromInbox = v.findViewById(R.id.btnTrainFromInbox);
 
         btnDetect.setOnClickListener(x -> {
             String txt = etMessage.getText().toString().trim();
@@ -60,6 +66,11 @@ public class ScanFragment extends Fragment {
         btnReport.setOnClickListener(x -> handleReport());
         btnMarkScam.setOnClickListener(x -> handleFeedback(true));
         btnMarkSafe.setOnClickListener(x -> handleFeedback(false));
+        btnTrainInbox.setOnClickListener(x -> handleSeedTraining());
+        btnTrainFromInbox.setOnClickListener(x -> {
+            if (getContext() == null) return;
+            startActivity(new Intent(getContext(), BulkTrainingActivity.class));
+        });
 
         return v;
     }
@@ -115,5 +126,22 @@ public class ScanFragment extends Fragment {
                     }
                 });
         });
+    }
+
+    private void handleSeedTraining() {
+        if (getContext() == null) return;
+        int added = 0;
+        for (Report report : FirebaseHelper.getDetectedScamMessages(requireContext())) {
+            String message = report.getMessage();
+            if (message == null || message.trim().isEmpty()) continue;
+            FirebaseHelper.addTrainingSample(requireContext(), message, true, "seed_detected_sms");
+            added++;
+        }
+        if (added == 0) {
+            Toast.makeText(getContext(), getString(R.string.training_seed_empty), Toast.LENGTH_SHORT).show();
+        } else {
+            FirebaseHelper.logUserActivity(requireContext(), "seed_training_detected_scams");
+            Toast.makeText(getContext(), getString(R.string.training_seed_added, added), Toast.LENGTH_SHORT).show();
+        }
     }
 }

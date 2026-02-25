@@ -22,8 +22,8 @@
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivDialogProfile"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
+                android:layout_width="@dimen/dialog_profile_image_size"
+                android:layout_height="@dimen/dialog_profile_image_size"
                 android:src="@drawable/ic_profile"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.Circular" />

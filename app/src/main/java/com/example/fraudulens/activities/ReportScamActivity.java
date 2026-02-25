@@ -16,6 +16,7 @@ import android.widget.ImageButton;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 import com.example.fraudulens.models.Report;
+import com.example.fraudulens.utils.ScamModelManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.storage.FirebaseStorage;
@@ -43,6 +44,11 @@ public class ReportScamActivity extends AppCompatActivity {
         ImageButton btnBackNav = findViewById(R.id.btnBackNav);
         if (btnBackNav != null) {
             btnBackNav.setOnClickListener(v -> finish());
+        }
+        View tvViewReports = findViewById(R.id.tvViewReports);
+        if (tvViewReports != null) {
+            tvViewReports.setOnClickListener(v ->
+                    startActivity(new android.content.Intent(this, ReportsActivity.class)));
         }
 
         etReportDescription = findViewById(R.id.etReportDescription);
@@ -138,10 +144,7 @@ public class ReportScamActivity extends AppCompatActivity {
         FirebaseHelper.addReport(data, success -> runOnUiThread(() -> {
             if (success) {
                 FirebaseHelper.logUserActivity(this, "report_scam_submitted");
-                FirebaseHelper.addTrainingSample(this, description, true, "user_report");
-                if (imageText != null && !imageText.trim().isEmpty()) {
-                    FirebaseHelper.addTrainingSample(this, imageText.trim(), true, "report_image_ocr");
-                }
+                ScamModelManager.forceRefreshModel(this);
                 Toast.makeText(this, "✅ Report submitted successfully!", Toast.LENGTH_SHORT).show();
                 etReportDescription.setText("");
                 cbAnonymous.setChecked(false);

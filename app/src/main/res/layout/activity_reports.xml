@@ -6,7 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView android:text="Community Reports" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/primaryColor"/>
+    <TextView
+        android:id="@+id/tvReportsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/view_my_reports"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/primaryColor"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvReports"

@@ -9,9 +9,19 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.firestore.*;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Date;
+import com.example.fraudulens.models.Report;
+import com.google.firebase.Timestamp;
 
 public class FirebaseHelper {
 
@@ -28,6 +38,7 @@ public class FirebaseHelper {
     private static final String KEY_LAST_SEEN_SCAM = "last_seen_scam";
     private static final String KEY_TRUSTED_NUMBERS = "trusted_numbers";
     private static final String KEY_TRUSTED_NAMES = "trusted_names";
+    private static final String KEY_DETECTED_SCAMS = "detected_scam_sms";
 
     public interface SimpleCallback<T> {
         void onComplete(T result);
@@ -142,6 +153,83 @@ public class FirebaseHelper {
     public static String normalizePhoneNumber(String number) {
         if (number == null) return "";
         return number.replaceAll("[^0-9]", "");
+    }
+
+    public static void saveDetectedScamMessage(Context ctx, String address, String body, long dateMillis) {
+        if (ctx == null || body == null || body.trim().isEmpty()) return;
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("address", address != null ? address : "");
+            obj.put("body", body.trim());
+            obj.put("date", dateMillis);
+            Set<String> existing = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .getStringSet(KEY_DETECTED_SCAMS, new HashSet<>());
+            Set<String> copy = new HashSet<>(existing);
+            copy.add(obj.toString());
+            if (copy.size() > 200) {
+                copy = trimDetectedScams(copy, 200);
+            }
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putStringSet(KEY_DETECTED_SCAMS, copy)
+                    .apply();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save detected scam message", e);
+        }
+    }
+
+    public static List<Report> getDetectedScamMessages(Context ctx) {
+        List<Report> results = new ArrayList<>();
+        if (ctx == null) return results;
+        Set<String> raw = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getStringSet(KEY_DETECTED_SCAMS, new HashSet<>());
+        for (String entry : raw) {
+            if (entry == null || entry.trim().isEmpty()) continue;
+            try {
+                JSONObject obj = new JSONObject(entry);
+                String address = obj.optString("address", "");
+                String body = obj.optString("body", "");
+                long dateMillis = obj.optLong("date", 0L);
+                Report r = new Report(
+                        "sms",
+                        body,
+                        "Potential Scam",
+                        new Timestamp(new Date(dateMillis)),
+                        "sms"
+                );
+                r.setSource(address);
+                results.add(r);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to parse detected scam message", e);
+            }
+        }
+        Collections.sort(results, (a, b) -> {
+            long ta = a.getTimestamp() != null ? a.getTimestamp().toDate().getTime() : 0L;
+            long tb = b.getTimestamp() != null ? b.getTimestamp().toDate().getTime() : 0L;
+            return Long.compare(tb, ta);
+        });
+        return results;
+    }
+
+    private static Set<String> trimDetectedScams(Set<String> input, int max) {
+        List<JSONObject> parsed = new ArrayList<>();
+        for (String entry : input) {
+            if (entry == null || entry.trim().isEmpty()) continue;
+            try {
+                parsed.add(new JSONObject(entry));
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to parse detected scam for trimming", e);
+            }
+        }
+        parsed.sort((a, b) -> Long.compare(b.optLong("date", 0L), a.optLong("date", 0L)));
+        Set<String> trimmed = new HashSet<>();
+        int count = 0;
+        for (JSONObject obj : parsed) {
+            trimmed.add(obj.toString());
+            count++;
+            if (count >= max) break;
+        }
+        return trimmed;
     }
 
     public static void logUserActivity(Context ctx, String action) {
@@ -990,14 +1078,16 @@ public class FirebaseHelper {
     public static void addTrainingSample(Context ctx, String text, boolean isScam, String source) {
         if (ctx == null || text == null || text.trim().isEmpty()) return;
         Map<String, Object> payload = new HashMap<>();
-        payload.put("text", text.trim());
+        payload.put("message", text.trim());
         payload.put("label", isScam ? 1 : 0);
-        payload.put("source", source != null ? source : "unknown");
+        payload.put("result", isScam ? "Potential Scam" : "Looks Safe");
+        payload.put("status", "training");
+        payload.put("source", source != null ? source : "training");
         payload.put("timestamp", FieldValue.serverTimestamp());
-        payload.put("user", getLoggedInEmail(ctx) != null ? getLoggedInEmail(ctx) : "anonymous");
+        payload.put("userId", getLoggedInEmail(ctx) != null ? getLoggedInEmail(ctx) : "anonymous");
         payload.put("appVersion", BuildConfig.VERSION_NAME);
 
-        db.collection("ml_training_samples")
+        db.collection("reports")
                 .add(payload)
                 .addOnFailureListener(e -> Log.e(TAG, "addTrainingSample failed", e));
     }

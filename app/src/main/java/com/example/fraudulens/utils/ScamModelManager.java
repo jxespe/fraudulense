@@ -27,6 +27,16 @@ public class ScamModelManager {
         ensureModelDownloaded(ctx);
     }
 
+    public static void forceRefreshModel(Context ctx) {
+        if (ctx == null) return;
+        Context appCtx = ctx.getApplicationContext();
+        appCtx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putLong(KEY_LAST_MODEL_CHECK, 0L)
+                .apply();
+        ensureModelDownloaded(ctx);
+    }
+
     public static Float predict(Context ctx, String text) {
         if (ctx == null) return null;
         ensureModelDownloaded(ctx);

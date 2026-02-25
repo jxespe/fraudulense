@@ -9,7 +9,6 @@ import com.example.fraudulens.R;
 import com.example.fraudulens.fragments.CommunityFragment;
 import com.example.fraudulens.fragments.HomeFragment;
 import com.example.fraudulens.fragments.ProfileFragment;
-import com.example.fraudulens.fragments.ScanFragment;
 import com.example.fraudulens.fragments.SearchFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 

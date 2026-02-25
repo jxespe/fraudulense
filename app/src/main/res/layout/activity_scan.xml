@@ -15,6 +15,8 @@
         android:layout_height="wrap_content">
 
         <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Scan Message"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -54,6 +56,22 @@
                     android:layout_marginTop="12dp"
                     android:backgroundTint="@color/secondaryColor" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTrainFromInbox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/train_from_inbox"
+                    android:layout_marginTop="8dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTrainInbox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/train_from_detected_scams"
+                    android:layout_marginTop="8dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
                 <!-- Result card -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardResult"
@@ -72,12 +90,16 @@
 
                         <TextView
                             android:id="@+id/tvResultTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             style="@style/TextAppearance.FrauduLens.Title"
                             android:text="Result"
                             />
 
                         <TextView
                             android:id="@+id/tvResultSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:text="Detected: Potential Scam"
                             android:layout_marginTop="6dp" />
 

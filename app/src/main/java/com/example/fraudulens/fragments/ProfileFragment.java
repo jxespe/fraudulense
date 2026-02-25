@@ -20,9 +20,13 @@ import androidx.appcompat.app.AlertDialog;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 import com.example.fraudulens.activities.LoginActivity;
+import com.example.fraudulens.activities.PremiumActivity;
 import com.example.fraudulens.activities.SettingsActivity;
 import com.example.fraudulens.utils.AuthHelper;
 import com.example.fraudulens.utils.PhoneFormatUtil;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -37,11 +41,13 @@ public class ProfileFragment extends Fragment {
 
     private TextView tvName, tvPhone, tvVerifyStatus;
     private ImageView ivProfile;
-    private LinearLayout llSettings, llLogout;
+    private LinearLayout llSettings, llLogout, llLinkedAccounts, llTerms, llPremium, llHelp;
     private ActivityResultLauncher<String> pickImageLauncher;
     private ActivityResultLauncher<Intent> cropLauncher;
     private String currentPhotoUrl;
     private ListenerRegistration userListener;
+    private String currentProvider;
+    private String currentEmail;
 
     @Nullable
     @Override
@@ -58,6 +64,10 @@ public class ProfileFragment extends Fragment {
         ivProfile = v.findViewById(R.id.ivProfile);
         llSettings = v.findViewById(R.id.llSettings);
         llLogout = v.findViewById(R.id.llLogout);
+        llLinkedAccounts = v.findViewById(R.id.llLinkedAccounts);
+        llTerms = v.findViewById(R.id.llTerms);
+        llPremium = v.findViewById(R.id.llPremium);
+        llHelp = v.findViewById(R.id.llHelp);
 
         pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri == null) return;
@@ -80,6 +90,7 @@ public class ProfileFragment extends Fragment {
 
         // ✅ Get logged-in email from SharedPreferences
         String email = FirebaseHelper.getLoggedInEmail(requireContext());
+        currentEmail = email;
 
         if (email != null) {
             userListener = FirebaseFirestore.getInstance()
@@ -105,9 +116,29 @@ public class ProfileFragment extends Fragment {
             ivProfile.setOnClickListener(view -> showProfilePhotoDialog());
         }
 
+        if (llLinkedAccounts != null) {
+            llLinkedAccounts.setOnClickListener(view -> showLinkedAccountsDialog());
+        }
+
         llSettings.setOnClickListener(view -> {
             startActivity(new Intent(getActivity(), SettingsActivity.class));
         });
+
+        if (llTerms != null) {
+            llTerms.setOnClickListener(view -> showTermsDialog());
+        }
+
+        if (llPremium != null) {
+            llPremium.setOnClickListener(view -> {
+                Intent intent = new Intent(getActivity(), PremiumActivity.class);
+                intent.putExtra("email", FirebaseHelper.getLoggedInEmail(requireContext()));
+                startActivity(intent);
+            });
+        }
+
+        if (llHelp != null) {
+            llHelp.setOnClickListener(view -> showHelpDialog());
+        }
 
         llLogout.setOnClickListener(view -> {
             // Sign out from all providers (Firebase, Google, Facebook)
@@ -137,6 +168,11 @@ public class ProfileFragment extends Fragment {
         String phone = doc.getString("phoneNumber");
         Boolean isVerified = doc.getBoolean("isVerified");
         String photoUrl = doc.getString("photoUrl");
+        currentProvider = doc.getString("provider");
+        String email = doc.getString("email");
+        currentEmail = (email != null && !email.trim().isEmpty())
+                ? email.toLowerCase(Locale.US)
+                : FirebaseHelper.getLoggedInEmail(requireContext());
         if (phone == null || phone.trim().isEmpty()) {
             phone = FirebaseHelper.getVerifiedPhone(requireContext());
         }
@@ -170,6 +206,8 @@ public class ProfileFragment extends Fragment {
             ivProfile.setImageResource(R.drawable.ic_profile);
         }
         currentPhotoUrl = null;
+        currentProvider = null;
+        currentEmail = FirebaseHelper.getLoggedInEmail(requireContext());
     }
 
     private void showProfilePhotoDialog() {
@@ -257,5 +295,88 @@ public class ProfileFragment extends Fragment {
             userListener = null;
         }
         super.onDestroyView();
+    }
+
+    private void showLinkedAccountsDialog() {
+        boolean googleLinked = isProviderLinked("google.com");
+        boolean facebookLinked = isProviderLinked("facebook.com");
+        boolean appleLinked = isProviderLinked("apple.com");
+
+        String linked = getString(R.string.linked_account_linked);
+        String notLinked = getString(R.string.linked_account_not_linked);
+        String[] items = new String[]{
+                getString(R.string.linked_account_item_format, getString(R.string.linked_account_google), googleLinked ? linked : notLinked),
+                getString(R.string.linked_account_item_format, getString(R.string.linked_account_facebook), facebookLinked ? linked : notLinked),
+                getString(R.string.linked_account_item_format, getString(R.string.linked_account_apple), appleLinked ? linked : notLinked)
+        };
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.linked_accounts_title)
+                .setItems(items, null)
+                .setPositiveButton(R.string.close, null)
+                .show();
+    }
+
+    private boolean isProviderLinked(String providerId) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            for (UserInfo info : user.getProviderData()) {
+                if (providerId.equals(info.getProviderId())) {
+                    return true;
+                }
+            }
+        }
+        if (currentProvider != null) {
+            if ("google".equalsIgnoreCase(currentProvider) && "google.com".equals(providerId)) return true;
+            if ("facebook".equalsIgnoreCase(currentProvider) && "facebook.com".equals(providerId)) return true;
+            if ("apple".equalsIgnoreCase(currentProvider) && "apple.com".equals(providerId)) return true;
+        }
+        if ("google.com".equals(providerId) && currentProvider == null) {
+            String email = currentEmail != null ? currentEmail.trim().toLowerCase(Locale.US) : null;
+            if (email != null && email.endsWith("@gmail.com")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void showTermsDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.profile_menu_terms)
+                .setMessage(R.string.terms_placeholder_body)
+                .setPositiveButton(R.string.close, null)
+                .show();
+    }
+
+    private void showHelpDialog() {
+        String[] labels = new String[]{
+                getString(R.string.help_category_profile_photo),
+                getString(R.string.help_category_change_name),
+                getString(R.string.help_category_premium),
+                getString(R.string.help_category_likes)
+        };
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.help_title)
+                .setItems(labels, (dialog, which) -> {
+                    if (which == 0) {
+                        showHelpDetail(R.string.help_category_profile_photo, R.string.help_profile_photo_body);
+                    } else if (which == 1) {
+                        showHelpDetail(R.string.help_category_change_name, R.string.help_change_name_body);
+                    } else if (which == 2) {
+                        showHelpDetail(R.string.help_category_premium, R.string.help_premium_body);
+                    } else if (which == 3) {
+                        showHelpDetail(R.string.help_category_likes, R.string.help_likes_body);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showHelpDetail(int titleRes, int bodyRes) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(titleRes)
+                .setMessage(bodyRes)
+                .setPositiveButton(R.string.close, null)
+                .show();
     }
 }

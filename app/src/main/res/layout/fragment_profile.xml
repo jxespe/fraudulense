@@ -24,8 +24,9 @@
             android:layout_weight="1" />
 
         <ImageView
-            android:layout_width="120dp"
-            android:layout_height="70dp"
+            android:layout_width="@dimen/logo_width"
+            android:layout_height="@dimen/logo_height"
+            android:adjustViewBounds="true"
             android:padding="4dp"
             android:src="@drawable/ic_logo_white" />
     </LinearLayout>
@@ -57,12 +58,12 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/profile_card_padding">
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivProfile"
-                        android:layout_width="72dp"
-                        android:layout_height="72dp"
+                        android:layout_width="@dimen/profile_image_size"
+                        android:layout_height="@dimen/profile_image_size"
                         android:src="@drawable/ic_profile"
                         android:scaleType="centerCrop"
                         android:clickable="true"
@@ -192,6 +193,7 @@
                 app:cardBackgroundColor="#1bb8f6">
 
                 <LinearLayout
+                    android:id="@+id/llTerms"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:orientation="horizontal"
@@ -227,6 +229,7 @@
                 app:cardBackgroundColor="#1bb8f6">
 
                 <LinearLayout
+                    android:id="@+id/llPrivacy"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:orientation="horizontal"
@@ -262,6 +265,7 @@
                 app:cardBackgroundColor="#1bb8f6">
 
                 <LinearLayout
+                    android:id="@+id/llPremium"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:orientation="horizontal"
@@ -297,6 +301,7 @@
                 app:cardBackgroundColor="#1bb8f6">
 
                 <LinearLayout
+                    android:id="@+id/llHelp"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:orientation="horizontal"

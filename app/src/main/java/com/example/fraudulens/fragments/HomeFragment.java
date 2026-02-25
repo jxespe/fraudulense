@@ -136,8 +136,20 @@ public class HomeFragment extends Fragment {
     public void onStart() {
         super.onStart();
         if (getContext() != null) {
-            requireContext().registerReceiver(scamReceiver, new IntentFilter(SmsReceiver.ACTION_SCAM_SMS));
+            ContextCompat.registerReceiver(
+                    requireContext(),
+                    scamReceiver,
+                    new IntentFilter(SmsReceiver.ACTION_SCAM_SMS),
+                    ContextCompat.RECEIVER_NOT_EXPORTED
+            );
         }
+        updateDailyCount();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateDailyCount();
     }
 
     @Override

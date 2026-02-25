@@ -22,7 +22,7 @@ function getEnvInt(key, fallback) {
 
 async function buildDatasetSince(lastProcessedAt, limit) {
   let query = db
-    .collection("ml_training_samples")
+    .collection("reports")
     .orderBy("timestamp")
     .limit(limit);
   if (lastProcessedAt) {
@@ -39,23 +39,37 @@ async function buildDatasetSince(lastProcessedAt, limit) {
 
   snap.forEach((doc) => {
     const data = doc.data() || {};
-    const text = typeof data.text === "string" ? data.text.trim() : "";
-    if (!text) return;
-
-    const label = data.label === 1 ? 1 : 0;
-    const source = data.source || "unknown";
+    const message = typeof data.message === "string" ? data.message.trim() : "";
+    const imageText = typeof data.imageText === "string" ? data.imageText.trim() : "";
+    const label = data.label === 0 ? 0 : 1;
+    const source = data.source || "report";
     const ts = data.timestamp && data.timestamp.toDate
       ? data.timestamp.toDate().toISOString()
       : null;
 
-    lines.push(
-      JSON.stringify({
-        text,
-        label,
-        source,
-        timestamp: ts,
-      })
-    );
+    if (message) {
+      lines.push(
+        JSON.stringify({
+          text: message,
+          label,
+          source,
+          timestamp: ts,
+          reportId: doc.id,
+        })
+      );
+    }
+
+    if (imageText) {
+      lines.push(
+        JSON.stringify({
+          text: imageText,
+          label: 1,
+          source: "report_image_ocr",
+          timestamp: ts,
+          reportId: doc.id,
+        })
+      );
+    }
 
     if (data.timestamp && (!maxTimestamp || data.timestamp.toMillis() > maxTimestamp.toMillis())) {
       maxTimestamp = data.timestamp;
@@ -184,7 +198,7 @@ async function runTrainingPipeline() {
 }
 
 exports.queueTrainingSample = onDocumentCreated(
-  "ml_training_samples/{id}",
+  "reports/{id}",
   async () => {
     const minSamples = getEnvInt("MIN_TRAIN_SAMPLES", DEFAULT_MIN_SAMPLES);
     const queueRef = db.collection("ml_training_meta").doc("queue");

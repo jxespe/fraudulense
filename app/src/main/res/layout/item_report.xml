@@ -40,6 +40,28 @@
             android:visibility="gone"
             tools:text="From: GCash" />
 
+        <TextView
+            android:id="@+id/tvReporter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Reported by: John"
+            android:textColor="@color/mutedText"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="Reported by: John" />
+
+        <ImageView
+            android:id="@+id/imgReport"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:background="@color/colorLightPurple"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:src="@drawable/sample_post" />
+
         <!-- Summary -->
         <TextView
             android:id="@+id/tvSummary"

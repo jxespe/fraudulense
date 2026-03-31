@@ -37,6 +37,8 @@
     <string name="home_report_scam">詐欺を\n報告</string>
     <string name="home_fraud_prevention">詐欺防止の\nヒント</string>
     <string name="home_trusted_contacts">信頼できる\n連絡先</string>
+    <string name="trusted_contacts_select_all">すべて選択</string>
+    <string name="trusted_contacts_clear_all">すべて解除</string>
 
     <string name="settings_realtime_scam_alerts">リアルタイム詐欺アラート</string>
     <string name="settings_permissions">権限</string>

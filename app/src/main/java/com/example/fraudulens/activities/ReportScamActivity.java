@@ -122,8 +122,10 @@ public class ReportScamActivity extends AppCompatActivity {
                     return ref.getDownloadUrl();
                 })
                 .addOnSuccessListener(uri -> submitReportData(description, userId, uri.toString(), ocrText))
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Image upload failed. Try again.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Image upload failed. Report submitted without image.", Toast.LENGTH_SHORT).show();
+                    submitReportData(description, userId, null, ocrText);
+                });
     }
 
     private void submitReportData(String description, String userId, String imageUrl, String imageText) {

@@ -38,6 +38,8 @@ public class HomeFragment extends Fragment {
     View viewDailyDot;
     ImageView ivGreetingProfile;
     View cardDailyReport;
+    View cardScamAlerts;
+    View cardFraudPrevention;
     View cardTrustedContacts;
     View cardReportScam;
     ListenerRegistration reg;
@@ -63,29 +65,32 @@ public class HomeFragment extends Fragment {
         tvDailyCount = v.findViewById(R.id.tvDailyCount);
         viewDailyDot = v.findViewById(R.id.viewDailyDot);
         cardDailyReport = v.findViewById(R.id.cardDailyReport);
+        cardScamAlerts = v.findViewById(R.id.cardScamAlerts);
+        cardFraudPrevention = v.findViewById(R.id.cardFraudPrevention);
         cardTrustedContacts = v.findViewById(R.id.cardTrustedContacts);
         cardReportScam = v.findViewById(R.id.cardReportScam);
         
         // Update greeting with user's first name if available
-        String userEmail = FirebaseHelper.getLoggedInEmail(getContext());
-        if (userEmail != null && tvGreeting != null) {
+        com.google.firebase.auth.FirebaseUser authUser =
+                com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        String userEmail = authUser != null ? authUser.getEmail() : FirebaseHelper.getLoggedInEmail(getContext());
+        if (authUser != null && authUser.getUid() != null && tvGreeting != null) {
             reg = FirebaseFirestore.getInstance()
                     .collection("users")
-                    .whereEqualTo("email", userEmail.toLowerCase())
-                    .limit(1)
+                    .document(authUser.getUid())
                     .addSnapshotListener((snapshot, error) -> {
                         if (error != null) {
-                            applyGreetingFallback(userEmail);
+                            loadGreetingFromLoginId(userEmail);
                             return;
                         }
-                        if (snapshot != null && !snapshot.isEmpty()) {
-                            applyGreetingSnapshot(snapshot.getDocuments().get(0), userEmail);
+                        if (snapshot != null && snapshot.exists()) {
+                            applyGreetingSnapshot(snapshot, userEmail);
                         } else {
-                            applyGreetingFallback(userEmail);
+                            loadGreetingFromLoginId(userEmail);
                         }
                     });
         } else if (tvGreeting != null) {
-            applyGreetingFallback(null);
+            loadGreetingFromLoginId(userEmail);
         }
 
         if (tvBuyPremium != null) {
@@ -102,10 +107,31 @@ public class HomeFragment extends Fragment {
             });
         }
 
+        if (tvDailyCount != null) {
+            tvDailyCount.setOnClickListener(view -> {
+                if (getContext() == null) return;
+                startActivity(new Intent(getContext(), ScamMessagesActivity.class));
+            });
+        }
+
         if (cardDailyReport != null) {
             cardDailyReport.setOnClickListener(view -> {
                 if (getContext() == null) return;
                 startActivity(new Intent(getContext(), ScamMessagesActivity.class));
+            });
+        }
+
+        if (cardScamAlerts != null) {
+            cardScamAlerts.setOnClickListener(view -> {
+                if (getContext() == null) return;
+                startActivity(new Intent(getContext(), com.example.fraudulens.activities.CommunityReportsActivity.class));
+            });
+        }
+
+        if (cardFraudPrevention != null) {
+            cardFraudPrevention.setOnClickListener(view -> {
+                if (getContext() == null) return;
+                startActivity(new Intent(getContext(), com.example.fraudulens.activities.FraudPreventionTipsActivity.class));
             });
         }
 
@@ -243,11 +269,30 @@ public class HomeFragment extends Fragment {
     }
 
     private void applyGreetingFallback(String userEmail) {
-        String firstName = extractFirstName(null, userEmail);
+        com.google.firebase.auth.FirebaseUser authUser =
+                com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        String displayName = authUser != null ? authUser.getDisplayName() : null;
+        String firstName = extractFirstName(displayName, userEmail);
         tvGreeting.setText(getString(R.string.home_greeting, firstName));
         if (ivGreetingProfile != null) {
             ivGreetingProfile.setImageResource(R.drawable.ic_profile);
         }
+    }
+
+    private void loadGreetingFromLoginId(String userEmail) {
+        if (tvGreeting == null) return;
+        String loginId = userEmail != null ? userEmail : FirebaseHelper.getLoggedInEmail(getContext());
+        if (loginId == null || loginId.trim().isEmpty()) {
+            applyGreetingFallback(userEmail);
+            return;
+        }
+        FirebaseHelper.getUserByLoginId(loginId, doc -> {
+            if (doc != null && doc.exists()) {
+                applyGreetingSnapshot(doc, userEmail);
+            } else {
+                applyGreetingFallback(userEmail);
+            }
+        });
     }
 
     @Override

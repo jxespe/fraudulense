@@ -145,12 +145,32 @@ public class PinSetupActivity extends AppCompatActivity {
                 fillNextEmpty(confirmPinInputs, digit);
             });
         }
+
+        Button btnBackspace = findViewById(R.id.btnBackspace);
+        if (btnBackspace != null) {
+            btnBackspace.setOnClickListener(v -> {
+                if (clearLastDigit(confirmPinInputs)) return;
+                clearLastDigit(pinInputs);
+            });
+        }
     }
 
     private boolean fillNextEmpty(TextInputEditText[] inputs, String digit) {
         for (TextInputEditText input : inputs) {
             if (input.getText() == null || input.getText().toString().isEmpty()) {
                 input.setText(digit);
+                input.requestFocus();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean clearLastDigit(TextInputEditText[] inputs) {
+        for (int i = inputs.length - 1; i >= 0; i--) {
+            TextInputEditText input = inputs[i];
+            if (input.getText() != null && !input.getText().toString().isEmpty()) {
+                input.setText("");
                 input.requestFocus();
                 return true;
             }

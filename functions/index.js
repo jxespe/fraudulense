@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 
 admin.initializeApp();
@@ -12,6 +13,37 @@ const DEFAULT_MIN_SAMPLES = 50;
 const DEFAULT_MAX_SAMPLES = 1000;
 const DEFAULT_TRAINING_ENDPOINT =
   "https://fraudulens-trainer-838199002873.us-central1.run.app/train";
+
+function scoreHeuristic(text) {
+  if (!text) return 0;
+  const t = String(text).toLowerCase();
+  const keywords = [
+    "otp", "one time password", "pin", "bank", "account", "verify", "verification",
+    "send money", "transfer", "payment", "urgent", "immediately", "prize", "lottery",
+    "login", "password", "gcash", "wallet", "bit.ly", "tinyurl", "confirm", "winner"
+  ];
+  let hits = 0;
+  keywords.forEach((k) => {
+    if (t.includes(k)) hits += 1;
+  });
+  const linkHits = (t.split("http").length - 1);
+  const raw = Math.min(1, (hits * 0.12) + (linkHits * 0.2));
+  return raw;
+}
+
+exports.scoreScamText = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const text = req.body && req.body.text ? String(req.body.text) : "";
+    const score = scoreHeuristic(text);
+    res.status(200).json({
+      score,
+      isScam: score >= 0.6,
+      model: "cloud_heuristic_v1",
+    });
+  } catch (e) {
+    res.status(500).json({ error: "inference_failed" });
+  }
+});
 
 function getEnvInt(key, fallback) {
   const raw = process.env[key];
@@ -225,7 +257,7 @@ exports.queueTrainingSample = onDocumentCreated(
   }
 );
 
-exports.buildTrainingDataset = onSchedule("every 10 minutes", async () => {
+exports.buildTrainingDataset = onSchedule("every 24 hours", async () => {
   const queueRef = db.collection("ml_training_meta").doc("queue");
   const queueSnap = await queueRef.get();
   const queue = queueSnap.exists ? queueSnap.data() : {};
@@ -235,4 +267,128 @@ exports.buildTrainingDataset = onSchedule("every 10 minutes", async () => {
   }
 
   await runTrainingPipeline();
+});
+
+exports.deleteUserAccount = onCall({ region: "asia-southeast1" }, async (request) => {
+  const auth = request.auth;
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "Authentication required.");
+  }
+
+  const isAdminClaim = auth.token && auth.token.admin === true;
+  const adminDoc = await db.collection("admin_users").doc(auth.uid).get();
+  const isAdminUser = adminDoc.exists;
+  if (!isAdminClaim && !isAdminUser) {
+    throw new HttpsError("permission-denied", "Admin access required.");
+  }
+
+  const data = request.data || {};
+  const userDocId = typeof data.userDocId === "string" ? data.userDocId.trim() : "";
+  const authUid = typeof data.authUid === "string" ? data.authUid.trim() : "";
+  const email = typeof data.email === "string" ? data.email.trim() : "";
+
+  if (!userDocId && !authUid && !email) {
+    throw new HttpsError("invalid-argument", "userDocId, authUid, or email is required.");
+  }
+
+  let authDeleted = false;
+  if (authUid) {
+    await admin.auth().deleteUser(authUid);
+    authDeleted = true;
+  } else if (email) {
+    try {
+      const userRecord = await admin.auth().getUserByEmail(email);
+      await admin.auth().deleteUser(userRecord.uid);
+      authDeleted = true;
+    } catch (err) {
+      if (err && err.code !== "auth/user-not-found") {
+        throw new HttpsError("internal", "Failed to delete auth user.");
+      }
+    }
+  }
+
+  let userDocDeleted = false;
+  if (userDocId) {
+    await db.collection("users").doc(userDocId).delete();
+    userDocDeleted = true;
+  }
+
+  return { ok: true, authDeleted, userDocDeleted };
+});
+
+exports.sendUserNotification = onCall({ region: "asia-southeast1" }, async (request) => {
+  const auth = request.auth;
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "Authentication required.");
+  }
+
+  const isAdminClaim = auth.token && auth.token.admin === true;
+  const adminDoc = await db.collection("admin_users").doc(auth.uid).get();
+  const isAdminUser = adminDoc.exists;
+  if (!isAdminClaim && !isAdminUser) {
+    throw new HttpsError("permission-denied", "Admin access required.");
+  }
+
+  const data = request.data || {};
+  const userDocId = typeof data.userDocId === "string" ? data.userDocId.trim() : "";
+  const email = typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
+  const title = typeof data.title === "string" ? data.title.trim() : "FrauduLens Alert";
+  const body =
+    typeof data.body === "string" && data.body.trim()
+      ? data.body.trim()
+      : "Your post was flagged by the admin. Please review your content.";
+
+  let userSnap = null;
+  if (userDocId) {
+    userSnap = await db.collection("users").doc(userDocId).get();
+  } else if (email) {
+    const q = await db.collection("users").where("email", "==", email).limit(1).get();
+    userSnap = q.empty ? null : q.docs[0];
+  }
+
+  if (!userSnap || !userSnap.exists) {
+    throw new HttpsError("not-found", "User not found.");
+  }
+
+  const userData = userSnap.data() || {};
+  const tokens = Array.isArray(userData.fcmTokens)
+    ? userData.fcmTokens.filter((t) => typeof t === "string" && t.trim())
+    : [];
+  if (!tokens.length) {
+    return { ok: false, reason: "no_tokens" };
+  }
+
+  const messagePayload = {
+    notification: { title, body },
+    data: {
+      type: "admin_warning",
+      userId: userSnap.id,
+    },
+  };
+
+  try {
+    const response = await admin.messaging().sendMulticast({
+      tokens,
+      ...messagePayload,
+    });
+    return { ok: true, sent: response.successCount, failed: response.failureCount };
+  } catch (err) {
+    const rawMessage = err && err.message ? String(err.message) : "";
+    logger.error("sendMulticast failed, falling back to send()", err);
+    // Fallback to per-token send to avoid /batch issues.
+    if (!rawMessage.includes("/batch")) {
+      throw err;
+    }
+    const results = await Promise.allSettled(
+      tokens.map((token) =>
+        admin.messaging().send({
+          token,
+          ...messagePayload,
+        })
+      )
+    );
+    const sent = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.length - sent;
+    return { ok: sent > 0, sent, failed };
+  }
 });

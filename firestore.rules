@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdminClaim() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isAdminUser() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isAdminClaim() || isAdminUser();
+    }
+
+    match /admin_users/{uid} {
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid || isAdminClaim();
+      allow update, delete: if isAdminClaim();
+    }
+
+    match /admin_settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /user_flags/{flagId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /users/{docId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == docId;
+
+      // Password reset after phone OTP: signed-in uid often matches authUid on the doc, not docId
+      // (legacy email signups used collection.add() with random document ids).
+      function userProfileAuthUid() {
+        return request.auth != null
+          && 'authUid' in resource.data
+          && resource.data.authUid == request.auth.uid;
+      }
+      function verifiedPhoneMatchesDoc() {
+        return request.auth != null
+          && request.auth.token.phone_number != null
+          && 'phoneNumber' in resource.data
+          && resource.data.phoneNumber == request.auth.token.phone_number;
+      }
+      function onlyPasswordHashUpdate() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['passwordHash', 'passwordUpdatedAt']);
+      }
+
+      allow update: if isAdmin()
+        || (request.auth != null && request.auth.uid == docId)
+        || (onlyPasswordHashUpdate() && (userProfileAuthUid() || verifiedPhoneMatchesDoc()));
+      allow delete: if isAdmin();
+    }
+
+    match /reports/{docId} {
+      // Custom email/username login often has no Firebase Auth session; reports must still save (same as posts).
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if isAdmin()
+        || (request.auth != null && resource.data.userId == request.auth.uid)
+        || (request.auth != null && resource.data.userId == request.auth.token.email);
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin()
+        || (request.auth != null && resource.data.userId == request.auth.uid);
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if isAdmin()
+          || (request.auth != null && resource.data.userId == request.auth.uid);
+      }
+    }
+
+    match /activity_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null;
+    }
+  }
+}

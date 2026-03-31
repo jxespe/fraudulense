@@ -176,10 +176,14 @@
                 android:rowCount="2">
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardScamAlerts"
                     android:layout_width="0dp"
                     android:layout_height="165dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/colorBlue"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="10dp"
@@ -256,10 +260,14 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFraudPrevention"
                     android:layout_width="0dp"
                     android:layout_height="165dp"
                     android:layout_columnWeight="1"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/colorPurple"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="10dp"

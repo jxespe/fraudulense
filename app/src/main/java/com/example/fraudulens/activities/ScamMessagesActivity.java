@@ -30,6 +30,8 @@ import com.example.fraudulens.utils.ScamDetector;
 import com.example.fraudulens.utils.ScamModelManager;
 import com.example.fraudulens.FirebaseHelper;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,10 +40,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ScamMessagesActivity extends AppCompatActivity {
 
     private static final int REQ_READ_SMS = 1001;
+    /** Inbox rows to scan — full history + ML per SMS on the UI thread causes black screen / ANR on large inboxes. */
+    private static final int MAX_INBOX_ROWS = 800;
+    private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
 
     private RecyclerView rvScamMessages;
     private TextView tvEmpty;
@@ -62,7 +69,13 @@ public class ScamMessagesActivity extends AppCompatActivity {
             if (FirebaseHelper.isTrustedMessage(ScamMessagesActivity.this, address, body)) {
                 return;
             }
-            String key = buildScamKey(address, body, date);
+            String key = FirebaseHelper.buildScamKey(address, body, date);
+            if (FirebaseHelper.isDismissedScam(ScamMessagesActivity.this, key)) {
+                return;
+            }
+            if (FirebaseHelper.isDismissedScamBody(ScamMessagesActivity.this, body)) {
+                return;
+            }
             if (containsScamKey(key)) {
                 return;
             }
@@ -129,77 +142,114 @@ public class ScamMessagesActivity extends AppCompatActivity {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
-        items.clear();
-        items.addAll(FirebaseHelper.getDetectedScamMessages(this));
-        for (Report report : items) {
-            if (report == null) continue;
-            if (report.getStatus() == null || "sms".equalsIgnoreCase(report.getStatus())) {
-                report.setStatus(categorizeMessage(report.getMessage()));
+
+        final Context appCtx = getApplicationContext();
+        loadExecutor.execute(() -> {
+            List<Report> merged = new ArrayList<>();
+            merged.addAll(FirebaseHelper.getDetectedScamMessages(appCtx));
+            for (Report report : merged) {
+                if (report == null) continue;
+                if (report.getStatus() == null || "sms".equalsIgnoreCase(report.getStatus())) {
+                    report.setStatus(categorizeMessage(report.getMessage()));
+                }
             }
-        }
-        Set<String> seen = new HashSet<>();
-        for (Report report : items) {
-            long timestamp = report.getTimestamp() != null ? report.getTimestamp().toDate().getTime() : 0L;
-            seen.add(buildScamKey(report.getSource(), report.getMessage(), timestamp));
-        }
-        Uri uri = Uri.parse("content://sms/inbox");
-        String[] projection = new String[]{"address", "body", "date"};
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, "date DESC");
-        if (cursor != null) {
+            Set<String> seen = new HashSet<>();
+            for (Report report : merged) {
+                long timestamp = report.getTimestamp() != null ? report.getTimestamp().toDate().getTime() : 0L;
+                seen.add(FirebaseHelper.buildScamKey(report.getSource(), report.getMessage(), timestamp));
+            }
+
+            boolean smsDenied = false;
+            boolean smsQueryFailed = false;
             try {
-                while (cursor.moveToNext()) {
-                    String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-                    String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                    long date = cursor.getLong(cursor.getColumnIndexOrThrow("date"));
-                    if (FirebaseHelper.isTrustedMessage(this, address, body)) {
-                        continue;
-                    }
-                    if (ScamDetector.isScam(this, body) || isLikelyScamByKeywords(body)) {
-                        String key = buildScamKey(address, body, date);
-                        if (seen.contains(key)) {
-                            continue;
+                Uri uri = Uri.parse("content://sms/inbox");
+                String[] projection = new String[]{"address", "body", "date"};
+                Cursor cursor = appCtx.getContentResolver().query(uri, projection, null, null, "date DESC");
+                if (cursor != null) {
+                    try {
+                        int rows = 0;
+                        while (cursor.moveToNext() && rows < MAX_INBOX_ROWS) {
+                            rows++;
+                            String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                            String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+                            long date = cursor.getLong(cursor.getColumnIndexOrThrow("date"));
+                            if (FirebaseHelper.isTrustedMessage(appCtx, address, body)) {
+                                continue;
+                            }
+                            // Bulk inbox scan: keywords + heuristic only (no TFLite per row — avoids ANR / black screen).
+                            // Real-time SMS still uses full on-device ML in SmsReceiver.
+                            if (isLikelyScamByKeywords(body) || ScamDetector.isScam(body)) {
+                                String key = FirebaseHelper.buildScamKey(address, body, date);
+                                if (FirebaseHelper.isDismissedScam(appCtx, key)) {
+                                    continue;
+                                }
+                                if (FirebaseHelper.isDismissedScamBody(appCtx, body)) {
+                                    continue;
+                                }
+                                if (seen.contains(key)) {
+                                    continue;
+                                }
+                                Report r = new Report(
+                                        "sms",
+                                        body,
+                                        "Potential Scam",
+                                        new Timestamp(new Date(date)),
+                                        "sms"
+                                );
+                                r.setStatus(categorizeMessage(body));
+                                r.setSource(address);
+                                merged.add(r);
+                                seen.add(key);
+                                FirebaseHelper.saveDetectedScamMessage(appCtx, address, body, date);
+                            }
                         }
-                        Report r = new Report(
-                                "sms",
-                                body,
-                                "Potential Scam",
-                                new Timestamp(new Date(date)),
-                                "sms"
-                        );
-                        r.setStatus(categorizeMessage(body));
-                        r.setSource(address);
-                        items.add(r);
-                        seen.add(key);
-                        FirebaseHelper.saveDetectedScamMessage(this, address, body, date);
+                    } finally {
+                        cursor.close();
                     }
                 }
-            } finally {
-                cursor.close();
+            } catch (SecurityException se) {
+                smsDenied = true;
+            } catch (Exception e) {
+                smsQueryFailed = true;
             }
-        }
 
-        Collections.sort(items, (a, b) -> {
-            long ta = a.getTimestamp() != null ? a.getTimestamp().toDate().getTime() : 0L;
-            long tb = b.getTimestamp() != null ? b.getTimestamp().toDate().getTime() : 0L;
-            return Long.compare(tb, ta);
+            Collections.sort(merged, (a, b) -> {
+                long ta = a.getTimestamp() != null ? a.getTimestamp().toDate().getTime() : 0L;
+                long tb = b.getTimestamp() != null ? b.getTimestamp().toDate().getTime() : 0L;
+                return Long.compare(tb, ta);
+            });
+
+            final List<Report> toShow = new ArrayList<>(merged);
+            final boolean denied = smsDenied;
+            final boolean failed = smsQueryFailed;
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                items.clear();
+                items.addAll(toShow);
+                adapter.update(new ArrayList<>(items));
+                tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
+                if (denied) {
+                    Toast.makeText(ScamMessagesActivity.this, "SMS access blocked on this device.", Toast.LENGTH_LONG).show();
+                } else if (failed) {
+                    Toast.makeText(ScamMessagesActivity.this, "Unable to load SMS on this device.", Toast.LENGTH_LONG).show();
+                }
+            });
         });
-        adapter.update(new ArrayList<>(items));
-        tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
-        if (swipeRefresh != null) {
-            swipeRefresh.setRefreshing(false);
-        }
     }
 
-    private String buildScamKey(String address, String body, long dateMillis) {
-        String normalized = FirebaseHelper.normalizePhoneNumber(address);
-        String safeBody = body == null ? "" : body.trim();
-        return normalized + "|" + dateMillis + "|" + safeBody;
+    @Override
+    protected void onDestroy() {
+        loadExecutor.shutdown();
+        super.onDestroy();
     }
 
     private boolean containsScamKey(String key) {
         for (Report report : items) {
             long timestamp = report.getTimestamp() != null ? report.getTimestamp().toDate().getTime() : 0L;
-            if (buildScamKey(report.getSource(), report.getMessage(), timestamp).equals(key)) {
+            if (FirebaseHelper.buildScamKey(report.getSource(), report.getMessage(), timestamp).equals(key)) {
                 return true;
             }
         }
@@ -220,12 +270,34 @@ public class ScamMessagesActivity extends AppCompatActivity {
             builder.setPositiveButton(getString(R.string.report_scam), (d, w) -> {
                 FirebaseHelper.addTrainingSample(this, message, true, "sms_feedback");
                 FirebaseHelper.logUserActivity(this, "sms_marked_scam");
-                Toast.makeText(this, getString(R.string.feedback_marked_scam), Toast.LENGTH_SHORT).show();
+                String reportUserId = getReportUserId();
+                Report reportEntry = new Report(
+                        reportUserId,
+                        message,
+                        "Reported Scam",
+                        new Timestamp(new Date()),
+                        "open"
+                );
+                reportEntry.setSource(source);
+                FirebaseHelper.addReport(reportEntry.toMap(), ok -> runOnUiThread(() -> {
+                    if (ok) {
+                        Toast.makeText(this, getString(R.string.feedback_marked_scam), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, R.string.report_submit_failed, Toast.LENGTH_LONG).show();
+                    }
+                }));
             });
             builder.setNegativeButton(getString(R.string.mark_as_safe), (d, w) -> {
                 FirebaseHelper.addTrainingSample(this, message, false, "sms_feedback");
                 FirebaseHelper.logUserActivity(this, "sms_marked_safe");
-                items.remove(report);
+                long dateMillis = report.getTimestamp() != null ? report.getTimestamp().toDate().getTime() : 0L;
+                String key = FirebaseHelper.buildScamKey(report.getSource(), report.getMessage(), dateMillis);
+                FirebaseHelper.dismissScamMessageByBody(this, message);
+                FirebaseHelper.dismissScamMessage(this, key);
+                String normalized = safeLower(message);
+                items.removeIf(item ->
+                        safeLower(item.getMessage()).equals(normalized)
+                );
                 adapter.update(new ArrayList<>(items));
                 tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
                 Toast.makeText(this, getString(R.string.feedback_marked_safe), Toast.LENGTH_SHORT).show();
@@ -343,7 +415,7 @@ public class ScamMessagesActivity extends AppCompatActivity {
 
     private String safeLower(String value) {
         if (value == null) return "";
-        return value.toLowerCase(Locale.US);
+        return value.trim().toLowerCase(Locale.US).replaceAll("\\s+", " ");
     }
 
     private boolean containsAny(String text, String... keywords) {
@@ -356,15 +428,31 @@ public class ScamMessagesActivity extends AppCompatActivity {
         return false;
     }
 
+    private String getReportUserId() {
+        String email = FirebaseHelper.getLoggedInEmail(this);
+        if (email != null && !email.trim().isEmpty()) {
+            return email.trim().toLowerCase(Locale.US);
+        }
+        FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (authUser != null && authUser.getUid() != null && !authUser.getUid().trim().isEmpty()) {
+            return authUser.getUid();
+        }
+        return "anonymous";
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
-        ContextCompat.registerReceiver(
-                this,
-                scamReceiver,
-                new IntentFilter(SmsReceiver.ACTION_SCAM_SMS),
-                ContextCompat.RECEIVER_NOT_EXPORTED
-        );
+        try {
+            ContextCompat.registerReceiver(
+                    this,
+                    scamReceiver,
+                    new IntentFilter(SmsReceiver.ACTION_SCAM_SMS),
+                    ContextCompat.RECEIVER_NOT_EXPORTED
+            );
+        } catch (Exception e) {
+            registerReceiver(scamReceiver, new IntentFilter(SmsReceiver.ACTION_SCAM_SMS));
+        }
         FirebaseHelper.setLastSeenScamTimestamp(this, System.currentTimeMillis());
         FirebaseHelper.logUserActivity(this, "view_scam_alerts");
     }

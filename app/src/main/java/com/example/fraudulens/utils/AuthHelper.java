@@ -31,6 +31,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.OAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -225,66 +226,48 @@ public class AuthHelper {
         final String normalizedEmail = email.toLowerCase();
         final String finalName = name != null ? name : "User";
 
-        // Check if user already exists
-        db.collection("users")
-                .whereEqualTo("email", normalizedEmail)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (snapshot.isEmpty()) {
-                        // Create new user
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("name", finalName);
-                        user.put("email", normalizedEmail);
-                        user.put("uid", uid);
-                        user.put("provider", provider);
-                        user.put("photoUrl", photoUrl);
-                        user.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
-                        user.put("isVerified", true);
-
-                        db.collection("users")
-                                .add(user)
-                                .addOnSuccessListener(doc -> {
-                                    Log.d(TAG, "Social login user created: " + normalizedEmail);
-                                    proceedAfterSocialLogin(activity, normalizedEmail, finalName);
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to create user", e);
-                                    proceedAfterSocialLogin(activity, normalizedEmail, finalName);
-                                });
-                    } else {
-                        // User exists, just proceed
-                        Log.d(TAG, "Social login user exists: " + normalizedEmail);
-                        proceedAfterSocialLogin(activity, normalizedEmail, finalName);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error checking user", e);
-                    proceedAfterSocialLogin(activity, normalizedEmail, finalName);
-                });
+        Log.d(TAG, "Social login authenticated: " + normalizedEmail);
+        proceedAfterSocialLogin(activity, normalizedEmail, finalName, uid, provider, photoUrl);
     }
 
     /**
      * Proceed after successful social login
      */
-    private static void proceedAfterSocialLogin(Activity activity, String email, String name) {
+    private static void proceedAfterSocialLogin(
+            Activity activity,
+            String email,
+            String name,
+            String uid,
+            String provider,
+            String photoUrl
+    ) {
         // Save login state
         FirebaseHelper.setLoggedIn(activity, email);
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> FirebaseHelper.saveFcmToken(activity, token));
         
-        // Check if user has phone number (for existing users)
+        if (uid == null || uid.trim().isEmpty()) {
+            Intent intent = new Intent(activity, PhoneVerificationActivity.class);
+            intent.putExtra("email", email);
+            intent.putExtra("name", name);
+            activity.startActivity(intent);
+            activity.finishAffinity();
+            return;
+        }
+
+        ensureOAuthEmailStored(uid, email, provider, name, photoUrl);
+
         db.collection("users")
-                .whereEqualTo("email", email)
-                .limit(1)
+                .document(uid)
                 .get()
                 .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.isEmpty() && snapshot.getDocuments().get(0).contains("phoneNumber")) {
-                        // User has phone number, go to premium/main
-                        Intent intent = new Intent(activity, PremiumActivity.class);
+                    if (snapshot.exists() && snapshot.getBoolean("hasProfile") != null
+                            && Boolean.TRUE.equals(snapshot.getBoolean("hasProfile"))) {
+                        Intent intent = new Intent(activity, MainActivity.class);
                         intent.putExtra("email", email);
                         activity.startActivity(intent);
                         activity.finishAffinity();
                     } else {
-                        // New user, go to phone verification
                         Intent intent = new Intent(activity, PhoneVerificationActivity.class);
                         intent.putExtra("email", email);
                         intent.putExtra("name", name);
@@ -293,13 +276,40 @@ public class AuthHelper {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Default to phone verification
                     Intent intent = new Intent(activity, PhoneVerificationActivity.class);
                     intent.putExtra("email", email);
                     intent.putExtra("name", name);
                     activity.startActivity(intent);
                     activity.finishAffinity();
                 });
+    }
+
+    private static void ensureOAuthEmailStored(
+            String uid,
+            String email,
+            String provider,
+            String name,
+            String photoUrl
+    ) {
+        if (uid == null || uid.trim().isEmpty()) return;
+        String normalizedEmail = email != null ? email.trim().toLowerCase() : null;
+        if (normalizedEmail == null || normalizedEmail.isEmpty()) return;
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("email", normalizedEmail);
+        updates.put("authUid", uid.trim());
+        if (provider != null && !provider.trim().isEmpty()) {
+            updates.put("provider", provider.trim());
+        }
+        if (name != null && !name.trim().isEmpty()) {
+            updates.put("name", name.trim());
+        }
+        if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+            updates.put("photoUrl", photoUrl.trim());
+        }
+        db.collection("users")
+                .document(uid.trim())
+                .set(updates, com.google.firebase.firestore.SetOptions.merge())
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to store OAuth email", e));
     }
 
     /**

@@ -1,15 +1,24 @@
 package com.example.fraudulens.activities;
 
 import android.os.Bundle;
-import android.widget.*;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
+import com.example.fraudulens.FirebaseHelper;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.squareup.picasso.Picasso;
+
+import java.util.Locale;
 
 public class DetailsActivity extends AppCompatActivity {
 
-    TextView tvTarget, tvSummary, tvTime;
+    TextView tvTarget, tvSummary, tvTime, tvReporter, tvSource, tvMessage, tvImageText;
+    ImageView imgDetail;
     Button btnResolve;
     String reportId;
 
@@ -18,9 +27,14 @@ public class DetailsActivity extends AppCompatActivity {
         super.onCreate(s);
         setContentView(R.layout.activity_details);
 
-        tvTarget  = findViewById(R.id.tvDetailTarget);
+        tvTarget = findViewById(R.id.tvDetailTarget);
         tvSummary = findViewById(R.id.tvDetailSummary);
-        tvTime    = findViewById(R.id.tvDetailTime);
+        tvTime = findViewById(R.id.tvDetailTime);
+        imgDetail = findViewById(R.id.imgDetail);
+        tvReporter = findViewById(R.id.tvDetailReporter);
+        tvSource = findViewById(R.id.tvDetailSource);
+        tvMessage = findViewById(R.id.tvDetailMessage);
+        tvImageText = findViewById(R.id.tvDetailImageText);
         btnResolve = findViewById(R.id.btnResolve);
 
         reportId = getIntent().getStringExtra("reportId");
@@ -41,8 +55,12 @@ public class DetailsActivity extends AppCompatActivity {
                 return;
             }
 
-            String target  = doc.getString("message");
+            String message = doc.getString("message");
             String summary = doc.getString("result");
+            String imageUrl = doc.getString("imageUrl");
+            String imageText = doc.getString("imageText");
+            String source = doc.getString("source");
+            String userId = doc.getString("userId");
 
             long timeMillis = 0;
             Object ts = doc.get("timestamp");
@@ -52,41 +70,41 @@ public class DetailsActivity extends AppCompatActivity {
 
             long finalTime = timeMillis;
             runOnUiThread(() -> {
-                tvTarget.setText(
-                        "Target: " + (target == null ? "" :
-                                (target.length() > 80
-                                        ? target.substring(0, 80) + "…"
-                                        : target))
-                );
+                String safeSource = source != null && !source.trim().isEmpty() ? source : "Unknown";
+                tvTarget.setText("Target: " + safeSource);
                 tvSummary.setText("Summary: " + (summary == null ? "" : summary));
+                tvMessage.setText("Message: " + (message == null ? "" : message));
+
+                if (source != null && !source.trim().isEmpty()) {
+                    tvSource.setVisibility(View.VISIBLE);
+                    tvSource.setText("From: " + source);
+                } else {
+                    tvSource.setVisibility(View.GONE);
+                }
 
                 tvTime.setText(finalTime > 0
                         ? "Reported: " + timeAgo(finalTime)
                         : "Reported: —");
+
+                if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                    imgDetail.setVisibility(View.VISIBLE);
+                    Picasso.get().load(imageUrl).into(imgDetail);
+                } else {
+                    imgDetail.setVisibility(View.GONE);
+                }
+
+                if (imageText != null && !imageText.trim().isEmpty()) {
+                    tvImageText.setVisibility(View.VISIBLE);
+                    tvImageText.setText("Image text: " + imageText.trim());
+                } else {
+                    tvImageText.setVisibility(View.GONE);
+                }
+
+                bindReporterName(userId);
             });
         });
 
-        // ✅ FIXED: callback-based resolve
-        btnResolve.setOnClickListener(v -> {
-            btnResolve.setEnabled(false);
-
-            FirebaseHelper.resolveReport(reportId, success ->
-                    runOnUiThread(() -> {
-                        btnResolve.setEnabled(true);
-
-                        if (success) {
-                            Toast.makeText(this,
-                                    "Report marked as resolved",
-                                    Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else {
-                            Toast.makeText(this,
-                                    "Failed to resolve report",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    })
-            );
-        });
+        btnResolve.setOnClickListener(v -> finish());
     }
 
     private String timeAgo(long epochMillis) {
@@ -97,5 +115,62 @@ public class DetailsActivity extends AppCompatActivity {
         if (hours < 24) return hours + "h ago";
         long days = hours / 24;
         return days + "d ago";
+    }
+
+    private void bindReporterName(String userId) {
+        if (tvReporter == null) return;
+        if (userId == null || userId.trim().isEmpty() || "anonymous".equalsIgnoreCase(userId)) {
+            tvReporter.setVisibility(View.GONE);
+            return;
+        }
+        if (userId.contains("@")) {
+            String local = userId.split("@")[0].trim();
+            String normalized = local.replace(".", " ")
+                    .replace("_", " ")
+                    .replace("-", " ");
+            String first = extractFirstName(normalized);
+            if (!first.isEmpty()) {
+                tvReporter.setVisibility(View.VISIBLE);
+                tvReporter.setText("Reported by: " + first);
+            } else {
+                tvReporter.setVisibility(View.GONE);
+            }
+            return;
+        }
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc == null || !doc.exists()) return;
+                    String name = doc.getString("name");
+                    if (name == null || name.trim().isEmpty()) {
+                        name = doc.getString("fullName");
+                    }
+                    if (name == null || name.trim().isEmpty()) {
+                        String first = doc.getString("firstName");
+                        String last = doc.getString("lastName");
+                        if (first != null && !first.trim().isEmpty()) {
+                            name = first.trim() + (last != null && !last.trim().isEmpty() ? " " + last.trim() : "");
+                        }
+                    }
+                    if (name == null || name.trim().isEmpty()) {
+                        name = doc.getString("username");
+                    }
+                    if (name != null && !name.trim().isEmpty()) {
+                        tvReporter.setVisibility(View.VISIBLE);
+                        tvReporter.setText("Reported by: " + extractFirstName(name));
+                    }
+                });
+    }
+
+    private String extractFirstName(String name) {
+        if (name == null) return "";
+        String trimmed = name.trim();
+        if (trimmed.isEmpty()) return "";
+        String[] parts = trimmed.split("\\s+");
+        String first = parts[0];
+        if (first.isEmpty()) return "";
+        return first.substring(0, 1).toUpperCase(Locale.getDefault()) + first.substring(1);
     }
 }

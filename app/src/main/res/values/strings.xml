@@ -9,6 +9,14 @@
     <string name="login">Login</string>
     <string name="register">Register</string>
     <string name="forgot_password">Forgot Password?</string>
+    <string name="forgot_password_phone_title">Enter your phone number</string>
+    <string name="forgot_password_phone_desc">We’ll send a verification code to the mobile number on your account.</string>
+    <string name="forgot_password_back_login">Back to sign in</string>
+    <string name="reset_password_otp_toolbar">Reset password</string>
+    <string name="reset_password_otp_title">Verify your number</string>
+    <string name="reset_password_otp_description">Enter the code we sent to</string>
+    <string name="reset_password_otp_resend">Did not get the code? Resend</string>
+    <string name="reset_password_otp_submit">Continue</string>
     <string name="scan_now">Scan Message</string>
     <string name="view_reports">Community Reports</string>
     <string name="profile">Profile</string>
@@ -46,6 +54,7 @@
     <string name="new_password">New password</string>
     <string name="confirm_password">Confirm password</string>
     <string name="reset_password">Reset password</string>
+    <string name="reset_password_new_password_title">Create new password</string>
     <string name="continue_label">Continue</string>
     <string name="profile_menu_terms">Terms &amp; Conditions</string>
     <string name="profile_menu_privacy">Privacy Choices</string>
@@ -69,6 +78,13 @@
     <string name="help_change_name_body">Go to Settings to update your name. Save changes to see them on your profile.</string>
     <string name="help_premium_body">Open FrauduLens Premium to view plans. Select a plan to continue. Your premium status appears after checkout.</string>
     <string name="help_likes_body">Tap the heart icon on a post to like it. Tap again to remove your like.</string>
+    <string name="call_alerts_channel_name">Call alerts</string>
+    <string name="call_alerts_channel_desc">FrauduLens warnings for suspicious callers.</string>
+    <string name="call_alert_possible_title">Possible scam caller</string>
+    <string name="call_alert_possible_body">New or unknown caller detected. Stay cautious.</string>
+    <string name="call_alert_spam_title">Likely spam caller</string>
+    <string name="call_alert_spam_body">Caller repeated 4+ times. Consider blocking.</string>
+    <string name="call_alert_ongoing_body">Stay cautious during this call.</string>
 
     <string name="home_greeting_placeholder">Hello</string>
     <string name="home_greeting">Hello, %1$s!</string>
@@ -81,6 +97,11 @@
     <string name="home_report_scam">REPORT A\nSCAM</string>
     <string name="home_fraud_prevention">FRAUD\nPREVENTION TIPS</string>
     <string name="home_trusted_contacts">TRUSTED\nCONTACTS</string>
+    <string name="community_reports_title">Community Scam Alerts</string>
+    <string name="fraud_prevention_tips_title">Fraud Prevention Tips</string>
+    <string name="fraud_prevention_tips_body">1. Guard Your Identity and Access\n• Enable Multi-Factor Authentication (MFA): Use MFA on all banking, social media, and email accounts. Prioritize authenticator apps or biometrics over SMS-based codes when possible.\n• Verify urgent requests: If you receive a call or message claiming to be an authority figure, hang up and call back using a verified number from the official website or your saved contacts.\n\n2. Practice Good Cyber Hygiene\n• Unique passwords: Use a password manager to generate and store complex, unique passwords for every account.\n• Limit public oversharing: Be mindful of personal info (birthdays, locations, workplaces) you share on social media.\n\n3. The Golden Rule of SMS\n• Never click links: Banks, government agencies (SSS or BIR), and major couriers (Lalamove or Grab) will not send clickable links in an SMS for sensitive verification or payment issues.\n• Do not reply to scams: Do not reply \"STOP\" or \"NO\" to suspicious texts. Replying confirms your number is active.\n\n4. Use Built-In Protection Features\n• Google Messages (Android): Enable Spam Protection to automatically move suspicious messages to a separate folder.\n• Apple Messages (iOS): Enable Filter Unknown Senders in Settings &gt; Messages.</string>
+    <string name="trusted_contacts_select_all">Select all</string>
+    <string name="trusted_contacts_clear_all">Clear all</string>
 
     <string name="settings_realtime_scam_alerts">Real-Time Scam Alerts</string>
     <string name="settings_permissions">Permissions</string>
@@ -92,6 +113,20 @@
     <string name="settings_change_pin">Change PIN</string>
     <string name="settings_require_pin_on_launch">Require PIN on launch</string>
     <string name="settings_security_alerts">Security alerts</string>
+    <string name="settings_block_unknown_calls">Block unknown calls</string>
+    <string name="settings_block_unknown_calls_hint">Enable call blocking for unknown numbers in your device settings.</string>
+    <string name="settings_call_speech_detection">Call speech detection (Beta)</string>
+    <string name="settings_call_speech_detection_hint">Listen for scam keywords during calls (on-device, speakerphone required).</string>
+    <string name="settings_default_dialer">Set as default dialer</string>
+    <string name="settings_default_dialer_hint">Required for call screening and in-call detection.</string>
+    <string name="call_speech_consent_title">Enable call speech detection?</string>
+    <string name="call_speech_consent_body">FrauduLens will use the microphone during calls to detect scam keywords on-device. No audio is stored or sent. You can disable this anytime.</string>
+    <string name="call_speech_permission_required">Microphone permission is required for speech detection.</string>
+    <string name="call_speech_not_default_dialer">Set FrauduLens as default dialer to enable speech detection.</string>
+    <string name="call_speech_service_title">Call speech detection running</string>
+    <string name="call_speech_service_body">Listening for possible scam keywords.</string>
+    <string name="call_alert_speech_title">Possible scam detected</string>
+    <string name="call_alert_speech_body">Scam-like phrases detected during this call.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_push_notifications">Push notifications</string>
     <string name="settings_community_updates">Community updates</string>
@@ -109,6 +144,7 @@
     <string name="report_scam">Report scam</string>
     <string name="feedback_marked_scam">Thanks! We will learn from this scam report.</string>
     <string name="feedback_marked_safe">Marked safe. We will learn from this.</string>
+    <string name="report_submit_failed">Could not save your report. Check your connection and try again.</string>
     <string name="train_from_detected_scams">Train from detected scams</string>
     <string name="train_from_inbox">Train from inbox (filter)</string>
     <string name="view_my_reports">View my reports</string>

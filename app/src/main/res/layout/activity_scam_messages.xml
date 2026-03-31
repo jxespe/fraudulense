@@ -10,7 +10,7 @@
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/gradient_bg"
-        app:title="Scam Alerts"
+        app:title="@string/home_daily_report"
         app:titleTextColor="@color/surface"
         app:navigationIcon="@android:drawable/ic_menu_revert"
         app:layout_constraintTop_toTopOf="parent"

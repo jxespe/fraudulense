@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose payment method"
+        android:textColor="@color/textPrimary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPayGcash"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="GCash"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPayCard"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Debit/Credit Card"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPayMaya"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Maya"
+        android:textAllCaps="false"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPayBank"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Bank Account"
+        android:textAllCaps="false" />
+</LinearLayout>

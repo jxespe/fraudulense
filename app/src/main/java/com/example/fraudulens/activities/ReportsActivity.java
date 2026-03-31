@@ -16,8 +16,13 @@ import java.util.*;
 public class ReportsActivity extends AppCompatActivity {
     RecyclerView rv;
     ReportAdapter adapter;
-    ListenerRegistration reg;
+    ListenerRegistration regUid;
+    ListenerRegistration regEmail;
+    ListenerRegistration regAuthEmail;
     TextView tvEmpty;
+    List<DocumentSnapshot> uidDocs = new ArrayList<>();
+    List<DocumentSnapshot> emailDocs = new ArrayList<>();
+    List<DocumentSnapshot> authEmailDocs = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle s) {
@@ -34,38 +39,91 @@ public class ReportsActivity extends AppCompatActivity {
         });
         rv.setAdapter(adapter);
 
-        String userId = com.example.fraudulens.FirebaseHelper.getLoggedInEmail(this);
-        if (userId == null || userId.trim().isEmpty()) {
-            userId = "anonymous";
+        // One-time migration to normalize older report owner IDs to the current identity key.
+        com.example.fraudulens.FirebaseHelper.migrateLegacyReportOwnerIds(this, ok -> {});
+
+        String email = com.example.fraudulens.FirebaseHelper.getLoggedInEmail(this);
+        if (email != null) {
+            email = email.trim().toLowerCase(java.util.Locale.US);
         }
-        reg = FirebaseFirestore.getInstance()
-                .collection("reports")
-                .whereEqualTo("userId", userId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .addSnapshotListener((snap, e) -> {
-            if (snap == null) return;
-            List<Report> items = new ArrayList<>();
-            for (DocumentSnapshot d : snap.getDocuments()) {
-                Report r = d.toObject(Report.class);
-                if (r == null) continue;
-                if ("training".equalsIgnoreCase(r.getStatus())) {
-                    continue;
-                }
-                r.setId(d.getId());
-                items.add(r);
+        com.google.firebase.auth.FirebaseUser authUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        String uid = authUser != null ? authUser.getUid() : null;
+        String authEmail = authUser != null && authUser.getEmail() != null
+                ? authUser.getEmail().trim().toLowerCase(java.util.Locale.US)
+                : null;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        if (uid != null && !uid.trim().isEmpty()) {
+            regUid = db.collection("reports")
+                    .whereEqualTo("userId", uid)
+                    .addSnapshotListener((snap, e) -> {
+                        uidDocs = snap != null ? snap.getDocuments() : new ArrayList<>();
+                        mergeAndRender();
+                    });
+        }
+        if (email != null && !email.trim().isEmpty()) {
+            regEmail = db.collection("reports")
+                    .whereEqualTo("userId", email)
+                    .addSnapshotListener((snap, e) -> {
+                        emailDocs = snap != null ? snap.getDocuments() : new ArrayList<>();
+                        mergeAndRender();
+                    });
+        }
+        if (authEmail != null && !authEmail.trim().isEmpty()
+                && (email == null || !authEmail.equals(email))) {
+            regAuthEmail = db.collection("reports")
+                    .whereEqualTo("userId", authEmail)
+                    .addSnapshotListener((snap, e) -> {
+                        authEmailDocs = snap != null ? snap.getDocuments() : new ArrayList<>();
+                        mergeAndRender();
+                    });
+        }
+        if ((uid == null || uid.trim().isEmpty()) && (email == null || email.trim().isEmpty())) {
+            regEmail = db.collection("reports")
+                    .whereEqualTo("userId", "anonymous")
+                    .addSnapshotListener((snap, e) -> {
+                        emailDocs = snap != null ? snap.getDocuments() : new ArrayList<>();
+                        mergeAndRender();
+                    });
+        }
+    }
+
+    private void mergeAndRender() {
+        Map<String, Report> map = new HashMap<>();
+        List<DocumentSnapshot> merged = new ArrayList<>();
+        merged.addAll(uidDocs);
+        merged.addAll(emailDocs);
+        merged.addAll(authEmailDocs);
+        for (DocumentSnapshot d : merged) {
+            if (d == null || d.getId() == null) continue;
+            if (map.containsKey(d.getId())) continue;
+            Report r = d.toObject(Report.class);
+            if (r == null) continue;
+            if ("training".equalsIgnoreCase(r.getStatus())) {
+                continue;
             }
-            runOnUiThread(() -> {
-                adapter.update(items);
-                if (tvEmpty != null) {
-                    tvEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
-                }
-            });
+            r.setId(d.getId());
+            map.put(d.getId(), r);
+        }
+        List<Report> items = new ArrayList<>(map.values());
+        items.sort((a, b) -> {
+            long ta = a.getTimestamp() != null ? a.getTimestamp().toDate().getTime() : 0L;
+            long tb = b.getTimestamp() != null ? b.getTimestamp().toDate().getTime() : 0L;
+            return Long.compare(tb, ta);
+        });
+        runOnUiThread(() -> {
+            adapter.update(items);
+            if (tvEmpty != null) {
+                tvEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+            }
         });
     }
 
     @Override
     protected void onDestroy() {
-        if (reg != null) reg.remove();
+        if (regUid != null) regUid.remove();
+        if (regEmail != null) regEmail.remove();
+        if (regAuthEmail != null) regAuthEmail.remove();
         super.onDestroy();
     }
 }

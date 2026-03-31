@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
 import com.example.fraudulens.models.Post;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
@@ -31,6 +33,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private final PostActionListener listener;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Map<String, String> photoCache = new HashMap<>();
+    private final Map<String, String> nameCache = new HashMap<>();
+    private final HashSet<String> nameRequests = new HashSet<>();
 
     public interface PostActionListener {
         void onLike(Post post, boolean currentlyLiked);
@@ -54,7 +58,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = postList.get(position);
 
-        holder.tvUserName.setText(post.getUserName() != null ? post.getUserName() : "Anonymous");
+        holder.tvUserName.setText(resolveDisplayName(post));
         holder.tvTime.setText(formatTimeAgo(post.getTimestamp() != null ? post.getTimestamp().toDate().getTime() : 0));
 
         boolean hasCaption = post.getCaption() != null && !post.getCaption().trim().isEmpty();
@@ -76,7 +80,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvCommentCount.setText(post.getCommentCount() + " Comments");
         holder.tvShareCount.setText(post.getShareCount() + " Shares");
 
-        String currentUser = FirebaseHelper.getLoggedInEmail(context);
+        String currentUser = FirebaseHelper.getUserKeyForLikes(context);
         boolean liked = post.getLikes() != null && currentUser != null && post.getLikes().contains(currentUser);
         holder.btnLike.setImageResource(liked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
 
@@ -95,14 +99,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvShareLabel.setVisibility(hasShared ? View.VISIBLE : View.GONE);
         holder.cardSharedContainer.setVisibility(hasShared ? View.VISIBLE : View.GONE);
         if (hasShared) {
+            String sharedUserId = valueOf(sharedPost.get("userId"), "");
             String sharedUser = valueOf(sharedPost.get("userName"), "Unknown");
             String sharedCaption = valueOf(sharedPost.get("caption"), "");
             String sharedImage = valueOf(sharedPost.get("imageUrl"), "");
             String sharedPhoto = valueOf(sharedPost.get("userPhotoUrl"), "");
-            String sharedUserId = valueOf(sharedPost.get("userId"), "");
             String sharedTime = formatSharedTime(sharedPost.get("timestamp"));
 
-            holder.tvSharedUserName.setText(sharedUser);
+            holder.tvSharedUserName.setText(resolveSharedDisplayName(sharedUserId, sharedUser));
             holder.tvSharedTime.setText(sharedTime);
 
             bindSharedUserPhoto(holder.imgSharedUser, sharedUserId, sharedPhoto);
@@ -196,6 +200,86 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             return formatTimeAgo((Long) timestampValue);
         }
         return "";
+    }
+
+    private String resolveDisplayName(Post post) {
+        String userId = post.getUserId();
+        String name = post.getUserName();
+        if (name != null && !name.trim().isEmpty() && !name.contains("@")) {
+            return name;
+        }
+        if (userId == null || userId.trim().isEmpty()) {
+            return name != null && !name.trim().isEmpty() ? name : "Anonymous";
+        }
+        String cached = nameCache.get(userId);
+        if (cached != null && !cached.trim().isEmpty()) {
+            return cached;
+        }
+        fetchUserName(userId);
+        return name != null && !name.trim().isEmpty() ? name : "Anonymous";
+    }
+
+    private String resolveSharedDisplayName(String userId, String fallback) {
+        if (fallback != null && !fallback.trim().isEmpty() && !fallback.contains("@")) {
+            return fallback;
+        }
+        if (userId == null || userId.trim().isEmpty()) {
+            return fallback != null && !fallback.trim().isEmpty() ? fallback : "Unknown";
+        }
+        String cached = nameCache.get(userId);
+        if (cached != null && !cached.trim().isEmpty()) {
+            return cached;
+        }
+        fetchUserName(userId);
+        return fallback != null && !fallback.trim().isEmpty() ? fallback : "Unknown";
+    }
+
+    private void fetchUserName(String userId) {
+        if (userId == null || userId.trim().isEmpty()) return;
+        if (nameRequests.contains(userId)) return;
+        nameRequests.add(userId);
+        if (userId.contains("@")) {
+            db.collection("users")
+                    .whereEqualTo("email", userId.trim().toLowerCase())
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot == null || snapshot.isEmpty()) return;
+                        DocumentSnapshot doc = snapshot.getDocuments().get(0);
+                        cacheNameForUser(userId, doc);
+                    })
+                    .addOnFailureListener(e -> {});
+            return;
+        }
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc == null || !doc.exists()) return;
+                    cacheNameForUser(userId, doc);
+                })
+                .addOnFailureListener(e -> {});
+    }
+
+    private void cacheNameForUser(String key, DocumentSnapshot doc) {
+        String name = doc.getString("name");
+        if (name == null || name.trim().isEmpty()) {
+            name = doc.getString("fullName");
+        }
+        if (name == null || name.trim().isEmpty()) {
+            String first = doc.getString("firstName");
+            String last = doc.getString("lastName");
+            if (first != null && !first.trim().isEmpty()) {
+                name = first.trim() + (last != null && !last.trim().isEmpty() ? " " + last.trim() : "");
+            }
+        }
+        if (name == null || name.trim().isEmpty()) {
+            name = doc.getString("username");
+        }
+        if (name != null && !name.trim().isEmpty()) {
+            nameCache.put(key, name);
+            notifyDataSetChanged();
+        }
     }
 
     private void bindUserPhoto(PostViewHolder holder, Post post) {

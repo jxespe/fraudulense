@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.provider.Settings;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +35,8 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String KEY_APP_LANGUAGE = "app_language_tag";
     private static final String KEY_REQUIRE_PIN = "security_require_pin";
     private static final String KEY_SECURITY_ALERTS = "security_alerts";
+    private static final String KEY_BLOCK_UNKNOWN_CALLS = "security_block_unknown_calls";
+    private static final String KEY_CALL_SPEECH = "security_call_speech_detection";
     private static final String KEY_NOTIF_PUSH = "notif_push";
     private static final String KEY_NOTIF_COMMUNITY = "notif_community";
     private static final String KEY_NOTIF_REPORTS = "notif_reports";
@@ -46,6 +49,8 @@ public class SettingsActivity extends AppCompatActivity {
     private SwitchMaterial switchContacts;
     private SwitchMaterial switchRequirePin;
     private SwitchMaterial switchSecurityAlerts;
+    private SwitchMaterial switchBlockUnknownCalls;
+    private SwitchMaterial switchCallSpeech;
     private SwitchMaterial switchNotifPush;
     private SwitchMaterial switchNotifCommunity;
     private SwitchMaterial switchNotifReports;
@@ -78,6 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         View securityHeader = findViewById(R.id.layoutSecurityHeader);
         View securityItems = findViewById(R.id.layoutSecurityItems);
         ImageView securityToggle = findViewById(R.id.ivSecurityToggle);
+        View rowDefaultDialer = findViewById(R.id.rowDefaultDialer);
         View notificationsHeader = findViewById(R.id.layoutNotificationsHeader);
         View notificationsItems = findViewById(R.id.layoutNotificationsItems);
         ImageView notificationsToggle = findViewById(R.id.ivNotificationsToggle);
@@ -94,6 +100,8 @@ public class SettingsActivity extends AppCompatActivity {
         switchContacts = findViewById(R.id.switchContacts);
         switchRequirePin = findViewById(R.id.switchRequirePin);
         switchSecurityAlerts = findViewById(R.id.switchSecurityAlerts);
+        switchBlockUnknownCalls = findViewById(R.id.switchBlockUnknownCalls);
+        switchCallSpeech = findViewById(R.id.switchCallSpeech);
         switchNotifPush = findViewById(R.id.switchNotifPush);
         switchNotifCommunity = findViewById(R.id.switchNotifCommunity);
         switchNotifReports = findViewById(R.id.switchNotifReports);
@@ -121,6 +129,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         if (rowChangePin != null) {
             rowChangePin.setOnClickListener(v -> startActivity(new Intent(this, PinSetupActivity.class)));
+        }
+        if (rowDefaultDialer != null) {
+            rowDefaultDialer.setOnClickListener(v -> requestDefaultDialer());
         }
     }
 
@@ -190,11 +201,48 @@ public class SettingsActivity extends AppCompatActivity {
     private void initSecurityAndNotificationSwitches() {
         initPrefSwitch(switchRequirePin, KEY_REQUIRE_PIN, true);
         initPrefSwitch(switchSecurityAlerts, KEY_SECURITY_ALERTS, true);
+        initPrefSwitch(switchBlockUnknownCalls, KEY_BLOCK_UNKNOWN_CALLS, false);
+        initCallSpeechSwitch();
         initPrefSwitch(switchNotifPush, KEY_NOTIF_PUSH, true);
         initPrefSwitch(switchNotifCommunity, KEY_NOTIF_COMMUNITY, true);
         initPrefSwitch(switchNotifReports, KEY_NOTIF_REPORTS, true);
         initPrefSwitch(switchNotifScam, KEY_NOTIF_SCAM, true);
         initPrefSwitch(switchNotifEmail, KEY_NOTIF_EMAIL, false);
+    }
+
+    private void initCallSpeechSwitch() {
+        if (switchCallSpeech == null) return;
+        boolean enabled = prefs.getBoolean(KEY_CALL_SPEECH, false);
+        setSwitchChecked(switchCallSpeech, enabled);
+        switchCallSpeech.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (ignoreSwitchChange) return;
+            if (!isChecked) {
+                prefs.edit().putBoolean(KEY_CALL_SPEECH, false).apply();
+                updateRemoteSetting(KEY_CALL_SPEECH, false);
+                return;
+            }
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.call_speech_consent_title)
+                    .setMessage(R.string.call_speech_consent_body)
+                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        if (!isDefaultDialer()) {
+                            Toast.makeText(this, R.string.call_speech_not_default_dialer, Toast.LENGTH_LONG).show();
+                            setSwitchChecked(switchCallSpeech, false);
+                            return;
+                        }
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                                != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 3101);
+                            return;
+                        }
+                        prefs.edit().putBoolean(KEY_CALL_SPEECH, true).apply();
+                        updateRemoteSetting(KEY_CALL_SPEECH, true);
+                    })
+                    .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                        setSwitchChecked(switchCallSpeech, false);
+                    })
+                    .show();
+        });
     }
 
     private void initSwitch(SwitchMaterial sw, String key, String[] perms) {
@@ -234,6 +282,9 @@ public class SettingsActivity extends AppCompatActivity {
             if (ignoreSwitchChange) return;
             prefs.edit().putBoolean(key, isChecked).apply();
             updateRemoteSetting(key, isChecked);
+            if (KEY_BLOCK_UNKNOWN_CALLS.equals(key) && isChecked) {
+                Toast.makeText(this, getString(R.string.settings_block_unknown_calls_hint), Toast.LENGTH_LONG).show();
+            }
         });
     }
 
@@ -312,6 +363,8 @@ public class SettingsActivity extends AppCompatActivity {
 
             applyRemoteBoolean(doc, "settings.security.requirePin", switchRequirePin, KEY_REQUIRE_PIN);
             applyRemoteBoolean(doc, "settings.security.alerts", switchSecurityAlerts, KEY_SECURITY_ALERTS);
+            applyRemoteBoolean(doc, "settings.security.blockUnknownCalls", switchBlockUnknownCalls, KEY_BLOCK_UNKNOWN_CALLS);
+            applyRemoteBoolean(doc, "settings.security.callSpeechDetection", switchCallSpeech, KEY_CALL_SPEECH);
 
             applyRemoteBoolean(doc, "settings.notifications.push", switchNotifPush, KEY_NOTIF_PUSH);
             applyRemoteBoolean(doc, "settings.notifications.community", switchNotifCommunity, KEY_NOTIF_COMMUNITY);
@@ -378,6 +431,8 @@ public class SettingsActivity extends AppCompatActivity {
         if (KEY_CONTACTS_ACCESS.equals(key)) return "settings.permissions.contactsAccess";
         if (KEY_REQUIRE_PIN.equals(key)) return "settings.security.requirePin";
         if (KEY_SECURITY_ALERTS.equals(key)) return "settings.security.alerts";
+        if (KEY_BLOCK_UNKNOWN_CALLS.equals(key)) return "settings.security.blockUnknownCalls";
+        if (KEY_CALL_SPEECH.equals(key)) return "settings.security.callSpeechDetection";
         if (KEY_NOTIF_PUSH.equals(key)) return "settings.notifications.push";
         if (KEY_NOTIF_COMMUNITY.equals(key)) return "settings.notifications.community";
         if (KEY_NOTIF_REPORTS.equals(key)) return "settings.notifications.reports";
@@ -387,6 +442,56 @@ public class SettingsActivity extends AppCompatActivity {
         return null;
     }
 
+    private boolean isDefaultDialer() {
+        android.telecom.TelecomManager tm = (android.telecom.TelecomManager) getSystemService(TELECOM_SERVICE);
+        String pkg = getPackageName();
+        return tm != null && pkg.equals(tm.getDefaultDialerPackage());
+    }
+
+    private void requestDefaultDialer() {
+        boolean launched = false;
+
+        Intent defaultsIntent = new Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS);
+        if (canResolve(defaultsIntent)) {
+            try {
+                startActivity(defaultsIntent);
+                launched = true;
+            } catch (Exception ignored) {}
+        }
+
+        if (!launched) {
+            Intent intent = new Intent(android.telecom.TelecomManager.ACTION_CHANGE_DEFAULT_DIALER);
+            intent.putExtra(android.telecom.TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, getPackageName());
+            if (canResolve(intent)) {
+                try {
+                    startActivity(intent);
+                    launched = true;
+                } catch (Exception ignored) {}
+            }
+        }
+
+        if (!launched && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            android.app.role.RoleManager roleManager = (android.app.role.RoleManager) getSystemService(ROLE_SERVICE);
+            if (roleManager != null && roleManager.isRoleAvailable(android.app.role.RoleManager.ROLE_DIALER)) {
+                Intent roleIntent = roleManager.createRequestRoleIntent(android.app.role.RoleManager.ROLE_DIALER);
+                if (canResolve(roleIntent)) {
+                    try {
+                        startActivity(roleIntent);
+                        launched = true;
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        if (!launched) {
+            Toast.makeText(this, "Open Settings > Apps > Default apps > Phone app", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private boolean canResolve(Intent intent) {
+        return intent.resolveActivity(getPackageManager()) != null;
+    }
+
     @Override
     protected void onDestroy() {
         if (userListener != null) {
@@ -394,5 +499,20 @@ public class SettingsActivity extends AppCompatActivity {
             userListener = null;
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 3101) {
+            boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (granted) {
+                prefs.edit().putBoolean(KEY_CALL_SPEECH, true).apply();
+                updateRemoteSetting(KEY_CALL_SPEECH, true);
+            } else {
+                Toast.makeText(this, R.string.call_speech_permission_required, Toast.LENGTH_LONG).show();
+                setSwitchChecked(switchCallSpeech, false);
+            }
+        }
     }
 }

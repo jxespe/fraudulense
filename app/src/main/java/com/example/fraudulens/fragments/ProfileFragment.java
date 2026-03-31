@@ -88,28 +88,26 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        // ✅ Get logged-in email from SharedPreferences
-        String email = FirebaseHelper.getLoggedInEmail(requireContext());
-        currentEmail = email;
+        FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+        currentEmail = authUser != null ? authUser.getEmail() : FirebaseHelper.getLoggedInEmail(requireContext());
 
-        if (email != null) {
+        if (authUser != null && authUser.getUid() != null) {
             userListener = FirebaseFirestore.getInstance()
                     .collection("users")
-                    .whereEqualTo("email", email.toLowerCase())
-                    .limit(1)
+                    .document(authUser.getUid())
                     .addSnapshotListener((snapshot, error) -> {
                         if (error != null) {
-                            applyProfileFallback();
+                            loadProfileFromLoginId();
                             return;
                         }
-                        if (snapshot != null && !snapshot.isEmpty()) {
-                            applyProfileSnapshot(snapshot.getDocuments().get(0));
+                        if (snapshot != null && snapshot.exists()) {
+                            applyProfileSnapshot(snapshot);
                         } else {
-                            applyProfileFallback();
+                            loadProfileFromLoginId();
                         }
                     });
         } else {
-            applyProfileFallback();
+            loadProfileFromLoginId();
         }
 
         if (ivProfile != null) {
@@ -166,15 +164,28 @@ public class ProfileFragment extends Fragment {
     private void applyProfileSnapshot(DocumentSnapshot doc) {
         String name = doc.getString("name");
         String phone = doc.getString("phoneNumber");
+        FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (phone == null || phone.trim().isEmpty()) {
+            phone = authUser != null ? authUser.getPhoneNumber() : null;
+        }
         Boolean isVerified = doc.getBoolean("isVerified");
         String photoUrl = doc.getString("photoUrl");
         currentProvider = doc.getString("provider");
-        String email = doc.getString("email");
+        String email = authUser != null ? authUser.getEmail() : null;
         currentEmail = (email != null && !email.trim().isEmpty())
                 ? email.toLowerCase(Locale.US)
                 : FirebaseHelper.getLoggedInEmail(requireContext());
         if (phone == null || phone.trim().isEmpty()) {
-            phone = FirebaseHelper.getVerifiedPhone(requireContext());
+            phone = authUser != null ? authUser.getPhoneNumber() : null;
+            if (phone == null || phone.trim().isEmpty()) {
+                phone = FirebaseHelper.getVerifiedPhone(requireContext());
+            }
+        }
+        if (name == null || name.trim().isEmpty()) {
+            name = authUser != null ? authUser.getDisplayName() : null;
+        }
+        if (name == null || name.trim().isEmpty() && currentEmail != null) {
+            name = currentEmail.split("@")[0];
         }
         tvName.setText(name != null && !name.trim().isEmpty()
                 ? name
@@ -197,8 +208,21 @@ public class ProfileFragment extends Fragment {
     }
 
     private void applyProfileFallback() {
-        tvName.setText(getString(R.string.profile_unknown_user));
-        tvPhone.setText(formatPhilippinesPhone(null));
+        FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+        String name = authUser != null ? authUser.getDisplayName() : null;
+        String email = authUser != null ? authUser.getEmail() : currentEmail;
+        if (name == null || name.trim().isEmpty()) {
+            name = email != null && email.contains("@") ? email.split("@")[0] : null;
+        }
+        String phone = authUser != null ? authUser.getPhoneNumber() : null;
+        if (phone == null || phone.trim().isEmpty()) {
+            phone = FirebaseHelper.getVerifiedPhone(requireContext());
+        }
+
+        tvName.setText(name != null && !name.trim().isEmpty()
+                ? name
+                : getString(R.string.profile_unknown_user));
+        tvPhone.setText(formatPhilippinesPhone(phone));
         if (tvVerifyStatus != null) {
             tvVerifyStatus.setText(getString(R.string.profile_not_verified));
         }
@@ -207,7 +231,22 @@ public class ProfileFragment extends Fragment {
         }
         currentPhotoUrl = null;
         currentProvider = null;
-        currentEmail = FirebaseHelper.getLoggedInEmail(requireContext());
+        currentEmail = email != null ? email : FirebaseHelper.getLoggedInEmail(requireContext());
+    }
+
+    private void loadProfileFromLoginId() {
+        String loginId = currentEmail != null ? currentEmail : FirebaseHelper.getLoggedInEmail(requireContext());
+        if (loginId == null || loginId.trim().isEmpty()) {
+            applyProfileFallback();
+            return;
+        }
+        FirebaseHelper.getUserByLoginId(loginId, doc -> {
+            if (doc != null && doc.exists()) {
+                applyProfileSnapshot(doc);
+            } else {
+                applyProfileFallback();
+            }
+        });
     }
 
     private void showProfilePhotoDialog() {
@@ -255,9 +294,14 @@ public class ProfileFragment extends Fragment {
 
     private void uploadProfilePhoto(Uri croppedUri) {
         String email = FirebaseHelper.getLoggedInEmail(requireContext());
-        String safeKey = email != null
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+        String safeKey = uid != null && !uid.trim().isEmpty()
+                ? uid.trim()
+                : (email != null
                 ? email.toLowerCase(Locale.US).replaceAll("[^a-z0-9_\\-]", "_")
-                : String.valueOf(System.currentTimeMillis());
+                : String.valueOf(System.currentTimeMillis()));
         String path = "profile_photos/" + safeKey + ".jpg";
         StorageReference ref = FirebaseHelper.getStorageRoot().child(path);
 
@@ -270,7 +314,7 @@ public class ProfileFragment extends Fragment {
                 })
                 .addOnSuccessListener(uri -> {
                     String url = uri.toString();
-                    FirebaseHelper.updateUserPhotoUrl(email, url, ok -> {
+                    FirebaseHelper.updateUserPhotoUrl(uid, url, ok -> {
                         currentPhotoUrl = url;
                         if (ivProfile != null) {
                             Picasso.get().load(url).placeholder(R.drawable.ic_profile).into(ivProfile);

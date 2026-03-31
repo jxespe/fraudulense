@@ -23,6 +23,8 @@ import com.example.fraudulens.R;
 import com.example.fraudulens.adapters.ReportAdapter;
 import com.example.fraudulens.models.Report;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,32 +90,11 @@ public class FilteredReportsActivity extends AppCompatActivity {
 
     private void loadFilteredMessages() {
         List<Report> items = new ArrayList<>();
-        Uri uri = Uri.parse("content://sms/inbox");
-        String[] projection = new String[]{"address", "body", "date"};
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, "date DESC");
-        if (cursor != null) {
-            try {
-                while (cursor.moveToNext()) {
-                    String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-                    String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                    long date = cursor.getLong(cursor.getColumnIndexOrThrow("date"));
-                    if (FirebaseHelper.isTrustedMessage(this, address, body)) {
-                        continue;
-                    }
-                    Report r = new Report(
-                            "sms",
-                            body,
-                            "Potential Scam",
-                            new Timestamp(new Date(date)),
-                            "sms"
-                    );
-                    r.setSource(address);
-                    if (matchesCategory(r, category)) {
-                        items.add(r);
-                    }
-                }
-            } finally {
-                cursor.close();
+        List<Report> detected = FirebaseHelper.getDetectedScamMessages(this);
+        for (Report r : detected) {
+            if (r == null) continue;
+            if (matchesCategory(r, category)) {
+                items.add(r);
             }
         }
 
@@ -193,7 +174,34 @@ public class FilteredReportsActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("From: " + source)
                 .setMessage(message)
-                .setPositiveButton("Close", null)
+                .setPositiveButton(getString(R.string.report_scam), (d, w) -> {
+                    FirebaseHelper.addTrainingSample(this, message, true, "sms_feedback");
+                    FirebaseHelper.logUserActivity(this, "sms_marked_scam");
+                    String reportUserId = getReportUserId();
+                    Report reportEntry = new Report(
+                            reportUserId,
+                            message,
+                            "Reported Scam",
+                            new Timestamp(new Date()),
+                            "open"
+                    );
+                    reportEntry.setSource(source);
+                    FirebaseHelper.addReport(reportEntry.toMap(), ok -> {});
+                    Toast.makeText(this, getString(R.string.feedback_marked_scam), Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(getString(R.string.close), null)
                 .show();
+    }
+
+    private String getReportUserId() {
+        String email = FirebaseHelper.getLoggedInEmail(this);
+        if (email != null && !email.trim().isEmpty()) {
+            return email.trim().toLowerCase(Locale.US);
+        }
+        FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (authUser != null && authUser.getUid() != null && !authUser.getUid().trim().isEmpty()) {
+            return authUser.getUid();
+        }
+        return "anonymous";
     }
 }

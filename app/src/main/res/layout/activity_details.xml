@@ -19,6 +19,8 @@
 
         <TextView
             android:id="@+id/textHeaderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Report Details"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -27,6 +29,8 @@
 
         <TextView
             android:id="@+id/textHeaderSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Phishing SMS report summary"
             android:textSize="14sp"
             android:textColor="@android:color/white"
@@ -67,6 +71,8 @@
 
                     <TextView
                         android:id="@+id/tvDetailTarget"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="Target: 0917-XXX-XXXX"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -74,13 +80,69 @@
 
                     <TextView
                         android:id="@+id/tvDetailSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="Summary: Received phishing SMS with fake bank login page."
                         android:layout_marginTop="8dp"
                         android:textColor="@color/textPrimary"
                         android:textSize="15sp" />
 
                     <TextView
+                        android:id="@+id/tvDetailReporter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Reported by: John"
+                        android:textColor="@color/mutedText"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/tvDetailSource"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="From: Unknown"
+                        android:textColor="@color/mutedText"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/tvDetailMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Message: Full message here"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/imgDetail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:contentDescription="@string/app_name" />
+
+                    <TextView
+                        android:id="@+id/tvDetailImageText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Image text: ..."
+                        android:textColor="@color/mutedText"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
                         android:id="@+id/tvDetailTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="Reported: 2 hours ago"
                         android:layout_marginTop="6dp"
                         android:textColor="@color/mutedText"
@@ -98,7 +160,7 @@
                             android:id="@+id/btnResolve"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Mark Resolved"
+                        android:text="Back"
                             android:textAllCaps="false"
                             android:textColor="@color/surface"
                             android:backgroundTint="@color/secondaryColor"

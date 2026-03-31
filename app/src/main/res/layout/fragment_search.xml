@@ -119,6 +119,24 @@
                 android:textSize="14sp"
                 android:visibility="gone" />
 
+            <TextView
+                android:id="@+id/tvSearchEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="No spam messages found."
+                android:textColor="@color/mutedText"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp" />
+
             <!-- Sort Options -->
             <TextView
                 android:layout_width="wrap_content"

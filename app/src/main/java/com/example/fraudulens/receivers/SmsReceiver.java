@@ -36,20 +36,33 @@ public class SmsReceiver extends BroadcastReceiver {
             }
         }
 
-        String body = bodyBuilder.toString();
+        final String body = bodyBuilder.toString();
+        final String addressFinal = address;
+        final long timestampFinal = timestamp;
         if (com.example.fraudulens.FirebaseHelper.isTrustedMessage(context, address, body)) {
             return;
         }
-        if (!ScamDetector.isScam(context, body)) {
-            return;
+        boolean localScam = ScamDetector.isScam(context, body);
+        if (localScam) {
+            FirebaseHelper.saveDetectedScamMessage(context, address, body, timestamp);
+            Intent broadcast = new Intent(ACTION_SCAM_SMS);
+            broadcast.setPackage(context.getPackageName());
+            broadcast.putExtra(EXTRA_BODY, body);
+            broadcast.putExtra(EXTRA_DATE, timestamp);
+            broadcast.putExtra(EXTRA_ADDRESS, address);
+            context.sendBroadcast(broadcast);
         }
 
-        FirebaseHelper.saveDetectedScamMessage(context, address, body, timestamp);
-        Intent broadcast = new Intent(ACTION_SCAM_SMS);
-        broadcast.setPackage(context.getPackageName());
-        broadcast.putExtra(EXTRA_BODY, body);
-        broadcast.putExtra(EXTRA_DATE, timestamp);
-        broadcast.putExtra(EXTRA_ADDRESS, address);
-        context.sendBroadcast(broadcast);
+        ScamDetector.checkHybrid(context, body, (isScam, score, source) -> {
+            if (!"cloud".equals(source)) return;
+            if (!isScam || localScam) return;
+            FirebaseHelper.saveDetectedScamMessage(context, addressFinal, body, timestampFinal);
+            Intent broadcast = new Intent(ACTION_SCAM_SMS);
+            broadcast.setPackage(context.getPackageName());
+            broadcast.putExtra(EXTRA_BODY, body);
+            broadcast.putExtra(EXTRA_DATE, timestampFinal);
+            broadcast.putExtra(EXTRA_ADDRESS, addressFinal);
+            context.sendBroadcast(broadcast);
+        });
     }
 }

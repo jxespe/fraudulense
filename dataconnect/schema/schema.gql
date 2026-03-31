@@ -1,0 +1,44 @@
+type User @table {
+  email: String!
+  passwordHash: String!
+  role: Role!
+  createdAt: Timestamp!
+  displayName: String
+  lastLoginAt: Timestamp
+}
+
+type ApplicationUser @table {
+  email: String!
+  username: String!
+  createdAt: Timestamp!
+  status: String!
+  displayName: String
+  profilePictureUrl: String
+  lastActivityAt: Timestamp
+}
+
+type ApplicationContent @table {
+  creator: ApplicationUser
+  title: String!
+  contentType: String!
+  status: String!
+  createdAt: Timestamp!
+  description: String
+  imageUrl: String
+  publishedAt: Timestamp
+}
+
+type Role @table {
+  name: String!
+  permissions: [String!]!
+  description: String
+}
+
+type AuditLog @table {
+  admin: User
+  action: String!
+  entityType: String!
+  entityId: UUID!
+  performedAt: Timestamp!
+  details: String
+}

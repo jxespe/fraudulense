@@ -4,4 +4,16 @@
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
+
+    <style name="Theme.FrauduLens" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryVariant">@color/primaryVariant</item>
+        <item name="colorSecondary">@color/secondaryColor</item>
+        <item name="android:statusBarColor">@color/primaryVariant</item>
+        <item name="android:navigationBarColor">@color/primaryVariant</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">never</item>
+        <item name="materialCardViewStyle">@style/Widget.MaterialComponents.CardView</item>
+        <item name="android:windowBackground">@drawable/gradient_bg</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
 </resources>

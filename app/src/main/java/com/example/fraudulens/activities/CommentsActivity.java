@@ -35,6 +35,7 @@ public class CommentsActivity extends AppCompatActivity {
     private CommentAdapter adapter;
     private String postId;
     private EditText etNewComment;
+    private ImageView btnSendComment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +49,18 @@ public class CommentsActivity extends AppCompatActivity {
         }
 
         postId = getIntent().getStringExtra(EXTRA_POST_ID);
+        if (postId != null) {
+            java.util.Map<String, Object> extras = new java.util.HashMap<>();
+            extras.put("postId", postId);
+            FirebaseHelper.logUserActivity(this, "post_viewed", extras);
+        }
 
         RecyclerView rvComments = findViewById(R.id.rvComments);
         adapter = new CommentAdapter(this);
         rvComments.setLayoutManager(new LinearLayoutManager(this));
         rvComments.setAdapter(adapter);
         etNewComment = findViewById(R.id.etNewComment);
-        ImageView btnSendComment = findViewById(R.id.btnSendComment);
+        btnSendComment = findViewById(R.id.btnSendComment);
         if (btnSendComment != null) {
             btnSendComment.setOnClickListener(v -> submitComment());
         }
@@ -210,9 +216,40 @@ public class CommentsActivity extends AppCompatActivity {
             FirebaseHelper.addCommentToPost(postId, comment, ok -> {
                 if (ok) {
                     etNewComment.setText("");
+                    animateSend();
+                    hideKeyboard();
+                    java.util.Map<String, Object> extras = new java.util.HashMap<>();
+                    extras.put("postId", postId);
+                    FirebaseHelper.logUserActivity(this, "comment_added", extras);
                 }
             });
         });
+    }
+
+    private void hideKeyboard() {
+        try {
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null && etNewComment != null) {
+                imm.hideSoftInputFromWindow(etNewComment.getWindowToken(), 0);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void animateSend() {
+        if (btnSendComment == null) return;
+        btnSendComment.animate()
+                .scaleX(0.85f)
+                .scaleY(0.85f)
+                .alpha(0.7f)
+                .setDuration(120)
+                .withEndAction(() -> btnSendComment.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .alpha(1f)
+                        .setDuration(120)
+                        .start())
+                .start();
     }
 
     private String valueOf(Object value, String fallback) {

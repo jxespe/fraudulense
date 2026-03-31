@@ -1,6 +1,7 @@
 package com.example.fraudulens.fragments;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -46,7 +47,7 @@ public class CommunityFragment extends Fragment {
     private EditText etCommunitySearch;
     private final List<Post> allPosts = new ArrayList<>();
     private ImageView activePreview;
-    private AlertDialog activeDialog;
+    private Dialog activeDialog;
 
     private ImageView imgCurrentUser;
     private Map<String, Object> currentProfile;
@@ -64,25 +65,36 @@ public class CommunityFragment extends Fragment {
         adapter = new PostAdapter(requireContext(), new PostAdapter.PostActionListener() {
             @Override
             public void onLike(Post post, boolean currentlyLiked) {
-                String user = FirebaseHelper.getLoggedInEmail(requireContext());
+                String user = FirebaseHelper.getUserKeyForLikes(requireContext());
                 if (user == null) {
                     Toast.makeText(requireContext(), "Please log in to like posts.", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 FirebaseHelper.setLikeOnPost(post.getId(), user, !currentlyLiked, ok -> {});
+                Map<String, Object> extras = new HashMap<>();
+                extras.put("postId", post.getId());
+                extras.put("actionType", currentlyLiked ? "unlike" : "like");
+                FirebaseHelper.logUserActivity(requireContext(),
+                        currentlyLiked ? "post_unliked" : "post_liked",
+                        extras);
+                bumpLocalCount(post.getId(), "like", currentlyLiked ? -1 : 1);
             }
 
             @Override
             public void onComment(Post post) {
                 if (getContext() == null) return;
+                bumpLocalCount(post.getId(), "comment", 1);
                 android.content.Intent intent = new android.content.Intent(getContext(), CommentsActivity.class);
                 intent.putExtra(CommentsActivity.EXTRA_POST_ID, post.getId());
                 startActivity(intent);
+                Map<String, Object> extras = new HashMap<>();
+                extras.put("postId", post.getId());
+                FirebaseHelper.logUserActivity(requireContext(), "post_viewed", extras);
             }
 
             @Override
             public void onShare(Post post) {
-                sharePost(post);
+                showShareDialog(post);
             }
         });
 
@@ -119,6 +131,7 @@ public class CommunityFragment extends Fragment {
 
         loadCurrentProfile();
         listenToPosts();
+        FirebaseHelper.logUserActivity(requireContext(), "community_feed_viewed");
 
         return v;
     }
@@ -171,10 +184,14 @@ public class CommunityFragment extends Fragment {
 
     private void openCreatePostDialog(boolean hasPreselectedImage) {
         if (getContext() == null) return;
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_post, null, false);
-        EditText etCaption = dialogView.findViewById(R.id.etPostCaption);
-        ImageView imgPreview = dialogView.findViewById(R.id.imgPostPreview);
-        TextView btnAddPhoto = dialogView.findViewById(R.id.btnAddPhoto);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_post_fullscreen, null, false);
+        EditText etCaption = dialogView.findViewById(R.id.etDialogCaption);
+        ImageView imgPreview = dialogView.findViewById(R.id.imgDialogPreview);
+        ImageView btnAddPhoto = dialogView.findViewById(R.id.btnDialogAddPhoto);
+        ImageView btnClose = dialogView.findViewById(R.id.btnClosePost);
+        TextView tvUserName = dialogView.findViewById(R.id.tvDialogUserName);
+        ImageView imgUser = dialogView.findViewById(R.id.imgDialogUser);
+        View btnPost = dialogView.findViewById(R.id.btnDialogPost);
 
         if (hasPreselectedImage && pendingImageUri != null) {
             imgPreview.setVisibility(View.VISIBLE);
@@ -183,39 +200,132 @@ public class CommunityFragment extends Fragment {
 
         btnAddPhoto.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
 
-        activeDialog = new AlertDialog.Builder(getContext())
-                .setTitle("Create Post")
-                .setView(dialogView)
-                .setPositiveButton("Post", (d, which) -> {
-                    String caption = etCaption.getText().toString().trim();
-                    if ((caption.isEmpty()) && pendingImageUri == null) {
-                        Toast.makeText(getContext(), "Please add a caption or photo.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    createPost(caption, pendingImageUri);
-                    pendingImageUri = null;
-                    activePreview = null;
+        if (currentProfile != null) {
+            String name = currentProfile.get("userName") != null ? String.valueOf(currentProfile.get("userName")) : "Anonymous";
+            String photoUrl = currentProfile.get("userPhotoUrl") != null ? String.valueOf(currentProfile.get("userPhotoUrl")) : null;
+            if (tvUserName != null) tvUserName.setText(name);
+            if (imgUser != null && photoUrl != null && !photoUrl.trim().isEmpty()) {
+                Picasso.get().load(photoUrl).placeholder(R.drawable.ic_profile).into(imgUser);
+            }
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> {
+                pendingImageUri = null;
+                activePreview = null;
+                if (activeDialog != null) {
+                    activeDialog.dismiss();
                     activeDialog = null;
-                })
-                .setNegativeButton("Cancel", (d, which) -> {
-                    pendingImageUri = null;
-                    activePreview = null;
+                }
+            });
+        }
+
+        if (btnPost != null) {
+            btnPost.setOnClickListener(v -> {
+                String caption = etCaption.getText().toString().trim();
+                if ((caption.isEmpty()) && pendingImageUri == null) {
+                    Toast.makeText(getContext(), "Please add a caption or photo.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                createPost(caption, pendingImageUri);
+                pendingImageUri = null;
+                activePreview = null;
+                if (activeDialog != null) {
+                    activeDialog.dismiss();
                     activeDialog = null;
-                    d.dismiss();
-                })
-                .create();
+                }
+            });
+        }
+
+        activeDialog = new Dialog(getContext(), R.style.FrauduLens_SlideUpDialog);
+        activeDialog.setContentView(dialogView);
+        if (activeDialog.getWindow() != null) {
+            activeDialog.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
+        }
         activeDialog.show();
         activePreview = imgPreview;
     }
 
     private void createPost(String caption, Uri imageUri) {
         FirebaseHelper.getCurrentUserProfile(requireContext(), profile -> {
+            showPendingPost(profile, caption, imageUri);
             if (imageUri != null) {
                 uploadPostImageAndSave(profile, caption, imageUri, null);
             } else {
                 savePost(profile, caption, null, null);
             }
         });
+    }
+
+    private void showShareDialog(Post original) {
+        if (getContext() == null) return;
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_share_post, null, false);
+        TextView tvSharedUser = dialogView.findViewById(R.id.tvSharedUser);
+        TextView tvSharedTime = dialogView.findViewById(R.id.tvSharedTime);
+        TextView tvSharedCaption = dialogView.findViewById(R.id.tvSharedCaption);
+        ImageView imgShared = dialogView.findViewById(R.id.imgShared);
+        EditText etCaption = dialogView.findViewById(R.id.etShareCaption);
+
+        tvSharedUser.setText(original.getUserName() != null ? original.getUserName() : "Unknown");
+        long tsMillis = original.getTimestamp() != null ? original.getTimestamp().toDate().getTime() : 0L;
+        tvSharedTime.setText(tsMillis > 0 ? formatTimeAgo(tsMillis) : "");
+        String originalCaption = original.getCaption() != null ? original.getCaption().trim() : "";
+        tvSharedCaption.setText(originalCaption.isEmpty() ? "No caption" : originalCaption);
+        if (original.getImageUrl() != null && !original.getImageUrl().trim().isEmpty()) {
+            imgShared.setVisibility(View.VISIBLE);
+            Picasso.get().load(original.getImageUrl()).placeholder(R.drawable.sample_post).into(imgShared);
+        } else {
+            imgShared.setVisibility(View.GONE);
+        }
+
+        new android.app.AlertDialog.Builder(getContext())
+                .setTitle("Share Post")
+                .setView(dialogView)
+                .setPositiveButton("Share", (d, which) -> {
+                    String caption = etCaption.getText() != null ? etCaption.getText().toString().trim() : "";
+                    sharePost(original, caption);
+                    bumpLocalCount(original.getId(), "share", 1);
+                    Map<String, Object> extras = new HashMap<>();
+                    extras.put("postId", original.getId());
+                    FirebaseHelper.logUserActivity(requireContext(), "post_shared", extras);
+                })
+                .setNegativeButton("Cancel", (d, which) -> d.dismiss())
+                .show();
+    }
+
+    private String formatTimeAgo(long timeMillis) {
+        if (timeMillis <= 0) return "";
+        long now = System.currentTimeMillis();
+        long diff = now - timeMillis;
+        long minutes = diff / (60 * 1000);
+        long hours = diff / (60 * 60 * 1000);
+        long days = diff / (24 * 60 * 60 * 1000);
+        if (minutes < 60) return minutes + "m ago";
+        if (hours < 24) return hours + "h ago";
+        if (days < 7) return days + "d ago";
+        return new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                .format(new java.util.Date(timeMillis));
+    }
+
+    private void showPendingPost(Map<String, Object> profile, String caption, Uri imageUri) {
+        Post pending = new Post();
+        pending.setId("local-" + System.currentTimeMillis());
+        pending.setUserId(profile.get("userId") != null ? String.valueOf(profile.get("userId")) : "local");
+        pending.setUserName(profile.get("userName") != null ? String.valueOf(profile.get("userName")) : "Anonymous");
+        pending.setUserPhotoUrl(profile.get("userPhotoUrl") != null ? String.valueOf(profile.get("userPhotoUrl")) : null);
+        pending.setCaption(caption);
+        pending.setImageUrl(imageUri != null ? imageUri.toString() : null);
+        pending.setTimestamp(com.google.firebase.Timestamp.now());
+        pending.setLikeCount(0);
+        pending.setCommentCount(0);
+        pending.setShareCount(0);
+        pending.setLikes(new java.util.ArrayList<>());
+
+        allPosts.add(0, pending);
+        applySearchFilter(etCommunitySearch != null ? etCommunitySearch.getText().toString() : "");
     }
 
     private void uploadPostImageAndSave(Map<String, Object> profile, String caption, Uri imageUri, Map<String, Object> sharedPost) {
@@ -256,7 +366,10 @@ public class CommunityFragment extends Fragment {
 
         FirebaseHelper.addPost(data, ok -> {
             if (ok) {
-                FirebaseHelper.logUserActivity(requireContext(), "community_post_created");
+                Map<String, Object> extras = new HashMap<>();
+                extras.put("hasImage", imageUrl != null && !imageUrl.trim().isEmpty());
+                extras.put("hasCaption", caption != null && !caption.trim().isEmpty());
+                FirebaseHelper.logUserActivity(requireContext(), "community_post_created", extras);
                 Toast.makeText(requireContext(), "Posted successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(requireContext(), "Failed to post. Try again.", Toast.LENGTH_SHORT).show();
@@ -264,7 +377,7 @@ public class CommunityFragment extends Fragment {
         });
     }
 
-    private void sharePost(Post original) {
+    private void sharePost(Post original, String caption) {
         Map<String, Object> shared = new HashMap<>();
         shared.put("userId", original.getUserId());
         shared.put("userName", original.getUserName());
@@ -274,9 +387,45 @@ public class CommunityFragment extends Fragment {
         shared.put("timestamp", original.getTimestamp());
 
         FirebaseHelper.getCurrentUserProfile(requireContext(), profile -> {
-            savePost(profile, "", null, shared);
+            showPendingSharedPost(profile, caption, shared);
+            savePost(profile, caption != null ? caption : "", null, shared);
             FirebaseHelper.incrementShareCount(original.getId());
         });
+    }
+
+    private void showPendingSharedPost(Map<String, Object> profile, String caption, Map<String, Object> sharedPost) {
+        Post pending = new Post();
+        pending.setId("local-share-" + System.currentTimeMillis());
+        pending.setUserId(profile.get("userId") != null ? String.valueOf(profile.get("userId")) : "local");
+        pending.setUserName(profile.get("userName") != null ? String.valueOf(profile.get("userName")) : "Anonymous");
+        pending.setUserPhotoUrl(profile.get("userPhotoUrl") != null ? String.valueOf(profile.get("userPhotoUrl")) : null);
+        pending.setCaption(caption);
+        pending.setTimestamp(com.google.firebase.Timestamp.now());
+        pending.setLikeCount(0);
+        pending.setCommentCount(0);
+        pending.setShareCount(0);
+        pending.setLikes(new java.util.ArrayList<>());
+        pending.setSharedPost(sharedPost);
+
+        allPosts.add(0, pending);
+        applySearchFilter(etCommunitySearch != null ? etCommunitySearch.getText().toString() : "");
+    }
+
+    private void bumpLocalCount(String postId, String type, int delta) {
+        if (postId == null) return;
+        for (Post p : allPosts) {
+            if (postId.equals(p.getId())) {
+                if ("like".equals(type)) {
+                    p.setLikeCount(Math.max(0, p.getLikeCount() + delta));
+                } else if ("comment".equals(type)) {
+                    p.setCommentCount(Math.max(0, p.getCommentCount() + delta));
+                } else if ("share".equals(type)) {
+                    p.setShareCount(Math.max(0, p.getShareCount() + delta));
+                }
+                applySearchFilter(etCommunitySearch != null ? etCommunitySearch.getText().toString() : "");
+                return;
+            }
+        }
     }
 
     @Override

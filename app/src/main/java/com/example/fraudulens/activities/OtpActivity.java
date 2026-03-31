@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +16,7 @@ import com.example.fraudulens.R;
 import com.example.fraudulens.utils.FirebaseUtils;
 import com.example.fraudulens.utils.PhoneFormatUtil;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 import java.util.function.Consumer;
@@ -26,7 +26,7 @@ public class OtpActivity extends AppCompatActivity {
     private TextInputEditText[] otpInputs = new TextInputEditText[6];
     private Button btnSubmit;
     private TextView tvTimer, tvResend, tvPhoneNumber;
-    private String verificationId, phoneNumber;
+    private String verificationId, phoneNumber, pendingEmail, pendingUsername, pendingPassword;
     private CountDownTimer countDownTimer;
 
     @Override
@@ -47,6 +47,9 @@ public class OtpActivity extends AppCompatActivity {
 
         verificationId = getIntent().getStringExtra("verificationId");
         phoneNumber = getIntent().getStringExtra("phoneNumber");
+        pendingEmail = getIntent().getStringExtra("email");
+        pendingUsername = getIntent().getStringExtra("username");
+        pendingPassword = getIntent().getStringExtra("password");
 
         if (verificationId == null || phoneNumber == null) {
             Toast.makeText(this, "Verification data missing", Toast.LENGTH_SHORT).show();
@@ -175,9 +178,18 @@ public class OtpActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 FirebaseHelper.setVerifiedPhone(this, phoneNumber);
                 FirebaseHelper.markPhoneVerified(phoneNumber);
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    FirebaseHelper.saveAuthPhoneNumber(
+                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                            phoneNumber
+                    );
+                }
                 Intent intent = new Intent(this, CreateProfileActivity.class);
-                            intent.putExtra("phoneNumber", phoneNumber);
-                            startActivity(intent);
+                intent.putExtra("phoneNumber", phoneNumber);
+                intent.putExtra("email", pendingEmail);
+                intent.putExtra("username", pendingUsername);
+                intent.putExtra("password", pendingPassword);
+                startActivity(intent);
                 finish();
             } else {
                 Toast.makeText(this, "Invalid OTP. Please try again.", Toast.LENGTH_SHORT).show();

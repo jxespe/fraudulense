@@ -85,8 +85,32 @@ public class FirebaseUtils {
         PhoneAuthProvider.verifyPhoneNumber(options);
     }
 
-    // ✅ Sign in via phone OTP credential
+    /**
+     * Sign in or link phone after OTP. When a Firebase user is already present, defaults to
+     * {@link com.google.firebase.auth.FirebaseUser#linkWithCredential} (sign-up / add-phone flows).
+     * Password reset must use {@code signInOnly=true} so we never try to link a mismatching session,
+     * which surfaces as “invalid code” even with the correct test OTP.
+     */
     public static void signInWithPhoneCredential(PhoneAuthCredential credential, Consumer<Task<AuthResult>> callback) {
+        signInWithPhoneCredential(credential, false, callback);
+    }
+
+    public static void signInWithPhoneCredential(
+            PhoneAuthCredential credential,
+            boolean signInOnly,
+            Consumer<Task<AuthResult>> callback
+    ) {
+        if (signInOnly) {
+            auth.signOut();
+            auth.signInWithCredential(credential).addOnCompleteListener(callback::accept);
+            return;
+        }
+        if (auth.getCurrentUser() != null) {
+            auth.getCurrentUser()
+                    .linkWithCredential(credential)
+                    .addOnCompleteListener(callback::accept);
+            return;
+        }
         auth.signInWithCredential(credential).addOnCompleteListener(callback::accept);
     }
 

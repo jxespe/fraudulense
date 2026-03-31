@@ -96,56 +96,56 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin1"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
                     android:textColor="@color/textPrimary"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin2"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
                     android:textColor="@color/textPrimary"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin3"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
                     android:textColor="@color/textPrimary"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPin4"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
+                    android:textColor="@color/textPrimary"
                     android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
-                    android:textColor="@color/textPrimary"/>
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <TextView
@@ -170,56 +170,56 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin1"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
                     android:textColor="@color/textPrimary"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin2"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
                     android:textColor="@color/textPrimary"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin3"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
                     android:textColor="@color/textPrimary"
-                    android:layout_marginEnd="8dp"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPin4"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:maxLength="1"
+                    android:background="@drawable/rounded_card_transparent"
                     android:gravity="center"
+                    android:inputType="numberPassword"
+                    android:maxLength="1"
+                    android:textColor="@color/textPrimary"
                     android:textSize="20sp"
-                    android:textStyle="bold"
-                android:background="@drawable/rounded_card_transparent"
-                    android:textColor="@color/textPrimary"/>
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -427,11 +427,21 @@
                 app:strokeColor="@color/colorPurple"
                 app:strokeWidth="2dp" />
 
-            <Space
+            <Button
+                android:id="@+id/btnBackspace"
                 android:layout_width="0dp"
                 android:layout_height="70dp"
                 android:layout_columnWeight="1"
-                android:layout_margin="6dp" />
+                android:layout_margin="6dp"
+                android:backgroundTint="@android:color/transparent"
+                android:elevation="0dp"
+                android:stateListAnimator="@null"
+                android:text=""
+                android:contentDescription="Backspace"
+                app:icon="@drawable/ic_backspace"
+                app:iconTint="@color/colorPurple"
+                app:iconSize="22dp"
+                app:cornerRadius="12dp" />
 
         </GridLayout>
     </LinearLayout>

@@ -7,5 +7,19 @@
       "MIN_TRAIN_SAMPLES": "50",
       "MAX_TRAIN_SAMPLES": "1000"
     }
+  },
+  "hosting": {
+    "public": "not used",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

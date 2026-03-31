@@ -15,6 +15,9 @@ public class Report {
     private Timestamp timestamp;
     private String status;    // e.g., "Open", "Resolved", "Under Review"
     private String source;    // sender/source for SMS-based reports
+    private String reporterName;
+    private String imageUrl;
+    private String imageText;
 
     public Report() {
         // Needed for Firestore deserialization
@@ -52,6 +55,15 @@ public class Report {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public String getReporterName() { return reporterName; }
+    public void setReporterName(String reporterName) { this.reporterName = reporterName; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getImageText() { return imageText; }
+    public void setImageText(String imageText) { this.imageText = imageText; }
 
     // --- Firestore map conversion ---
     public Map<String, Object> toMap() {

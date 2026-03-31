@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.widget.ImageButton;
 
 import com.example.fraudulens.FirebaseHelper;
 import com.example.fraudulens.R;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -98,18 +100,49 @@ public class LoginActivity extends AppCompatActivity {
             btnLogin.setEnabled(true);
 
             if (success) {
-                FirebaseHelper.hasPinForLogin(emailOrUsername, hasPin -> runOnUiThread(() -> {
-                    if (hasPin) {
-                        FirebaseHelper.logUserActivity(this, "login_password_verified");
-                        Intent intent = new Intent(this, PinLoginActivity.class);
-                        intent.putExtra(PinLoginActivity.EXTRA_LOGIN_ID, emailOrUsername);
-                        startActivity(intent);
-                    } else {
-                        FirebaseHelper.logUserActivity(this, "login_password_verified");
-                        Intent intent = new Intent(this, PinSetupActivity.class);
-                        intent.putExtra(PinSetupActivity.EXTRA_LOGIN_ID, emailOrUsername);
-                        startActivity(intent);
+                FirebaseHelper.checkUserSuspension(emailOrUsername, result -> runOnUiThread(() -> {
+                    boolean suspended = result.get("suspended") instanceof Boolean && (Boolean) result.get("suspended");
+                    if (suspended) {
+                        com.google.firebase.Timestamp suspendedAt = result.get("suspendedAt") instanceof com.google.firebase.Timestamp
+                                ? (com.google.firebase.Timestamp) result.get("suspendedAt")
+                                : null;
+                        com.google.firebase.Timestamp suspendedUntil = result.get("suspendedUntil") instanceof com.google.firebase.Timestamp
+                                ? (com.google.firebase.Timestamp) result.get("suspendedUntil")
+                                : null;
+                        String since = formatTimestamp(suspendedAt);
+                        String until = formatTimestamp(suspendedUntil);
+                        String durationText = formatDuration(suspendedAt, suspendedUntil);
+                        String reason = result.get("suspendedReason") instanceof String ? (String) result.get("suspendedReason") : "";
+                        String message = "Your account was suspended for " + durationText +
+                                " since " + (since.isEmpty() ? "N/A" : since) + ".\n\n" +
+                                "Until: " + (until.isEmpty() ? "N/A" : until) + "\n";
+                        if (!reason.isEmpty()) {
+                            message += "\nReason: " + reason + "\n";
+                        }
+                        message += "\nIf you want to appeal, contact administration.";
+                        new AlertDialog.Builder(this)
+                                .setTitle("Account Suspended")
+                                .setMessage(message)
+                                .setPositiveButton("OK", (d, which) -> d.dismiss())
+                                .setCancelable(false)
+                                .show();
+                        return;
                     }
+                    FirebaseHelper.hasPinForLogin(emailOrUsername, hasPin -> runOnUiThread(() -> {
+                        FirebaseMessaging.getInstance().getToken()
+                                .addOnSuccessListener(token -> FirebaseHelper.saveFcmToken(this, token));
+                        if (hasPin) {
+                            FirebaseHelper.logUserActivity(this, "login_password_verified");
+                            Intent intent = new Intent(this, PinLoginActivity.class);
+                            intent.putExtra(PinLoginActivity.EXTRA_LOGIN_ID, emailOrUsername);
+                            startActivity(intent);
+                        } else {
+                            FirebaseHelper.logUserActivity(this, "login_password_verified");
+                            Intent intent = new Intent(this, PinSetupActivity.class);
+                            intent.putExtra(PinSetupActivity.EXTRA_LOGIN_ID, emailOrUsername);
+                            startActivity(intent);
+                        }
+                    }));
                 }));
             } else {
                 Toast.makeText(this,
@@ -117,6 +150,23 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         }));
+    }
+
+    private String formatTimestamp(Object value) {
+        if (value instanceof com.google.firebase.Timestamp) {
+            java.util.Date date = ((com.google.firebase.Timestamp) value).toDate();
+            return new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(date);
+        }
+        return "";
+    }
+
+    private String formatDuration(com.google.firebase.Timestamp start, com.google.firebase.Timestamp end) {
+        if (start == null || end == null) return "a period";
+        long millis = end.toDate().getTime() - start.toDate().getTime();
+        if (millis <= 0) return "a period";
+        long days = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(millis);
+        if (days <= 0) return "a short period";
+        return days + (days == 1 ? " day" : " days");
     }
 
     private void startMain() {

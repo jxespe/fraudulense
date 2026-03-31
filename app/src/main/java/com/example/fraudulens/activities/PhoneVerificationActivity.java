@@ -26,6 +26,9 @@ public class PhoneVerificationActivity extends AppCompatActivity {
     private TextView tvLoginLink;
     private Spinner spCountryCode;
     private boolean isFormatting;
+    private String pendingEmail;
+    private String pendingUsername;
+    private String pendingPassword;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +94,10 @@ public class PhoneVerificationActivity extends AppCompatActivity {
             finish();
         });
 
+        pendingEmail = getIntent().getStringExtra("email");
+        pendingUsername = getIntent().getStringExtra("username");
+        pendingPassword = getIntent().getStringExtra("password");
+
     }
 
     @Override
@@ -139,6 +146,9 @@ public class PhoneVerificationActivity extends AppCompatActivity {
                         Intent intent = new Intent(PhoneVerificationActivity.this, OtpActivity.class);
                         intent.putExtra("verificationId", verificationId);
                         intent.putExtra("phoneNumber", fullPhoneNumber);
+                        intent.putExtra("email", pendingEmail);
+                        intent.putExtra("username", pendingUsername);
+                        intent.putExtra("password", pendingPassword);
                         startActivity(intent);
                     } else {
                         Toast.makeText(PhoneVerificationActivity.this, "Failed to send OTP. Please try again.", Toast.LENGTH_LONG).show();

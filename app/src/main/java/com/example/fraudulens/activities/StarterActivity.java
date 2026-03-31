@@ -63,7 +63,7 @@ public class StarterActivity extends AppCompatActivity {
         }
 
         btnEmail.setOnClickListener(v -> {
-            startActivity(new Intent(this, PhoneVerificationActivity.class));
+            startActivity(new Intent(this, EmailEntryActivity.class));
         });
 
         tvLoginLink.setOnClickListener(v -> {

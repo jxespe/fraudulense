@@ -124,24 +124,20 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
-            // Pass plain password - FirebaseHelper.register() will hash it
-            FirebaseHelper.register(name, username, email, pass, success ->
-                    runOnUiThread(() -> {
-                        btnCreate.setEnabled(true);
-
-                        if (success) {
-                            // Navigate to phone verification
-                            Intent intent = new Intent(RegisterActivity.this, PhoneVerificationActivity.class);
-                            intent.putExtra("email", email);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(this,
-                                    "Email or username already exists.",
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    })
-            );
+            FirebaseHelper.isUsernameAvailable(username, available -> runOnUiThread(() -> {
+                btnCreate.setEnabled(true);
+                if (!available) {
+                    Toast.makeText(this, "Username already exists.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                // Navigate to phone verification (create profile after OTP)
+                Intent intent = new Intent(RegisterActivity.this, PhoneVerificationActivity.class);
+                intent.putExtra("email", email);
+                intent.putExtra("username", username);
+                intent.putExtra("password", pass);
+                startActivity(intent);
+                finish();
+            }));
         }));
     }
 

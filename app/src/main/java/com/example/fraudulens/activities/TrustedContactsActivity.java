@@ -32,6 +32,7 @@ public class TrustedContactsActivity extends AppCompatActivity {
 
     private RecyclerView rvContacts;
     private TextView tvEmpty;
+    private com.google.android.material.button.MaterialButton btnSelectAll;
     private TrustedContactAdapter adapter;
     private final List<TrustedContactAdapter.ContactItem> items = new ArrayList<>();
     private Set<String> trustedNumbers;
@@ -50,6 +51,7 @@ public class TrustedContactsActivity extends AppCompatActivity {
 
         rvContacts = findViewById(R.id.rvContacts);
         tvEmpty = findViewById(R.id.tvEmpty);
+        btnSelectAll = findViewById(R.id.btnSelectAll);
         rvContacts.setLayoutManager(new LinearLayoutManager(this));
 
         trustedNumbers = FirebaseHelper.getTrustedNumbers(this);
@@ -69,8 +71,13 @@ public class TrustedContactsActivity extends AppCompatActivity {
                 }
             }
             FirebaseHelper.saveTrustedContacts(this, trustedNumbers, trustedNames);
+            updateSelectAllLabel();
         });
         rvContacts.setAdapter(adapter);
+
+        if (btnSelectAll != null) {
+            btnSelectAll.setOnClickListener(v -> toggleSelectAll());
+        }
 
         if (hasContactsPermission()) {
             loadContacts();
@@ -122,6 +129,7 @@ public class TrustedContactsActivity extends AppCompatActivity {
         items.addAll(unique.values());
         adapter.notifyDataSetChanged();
         tvEmpty.setVisibility(items.isEmpty() ? TextView.VISIBLE : TextView.GONE);
+        updateSelectAllLabel();
     }
 
     @Override
@@ -135,5 +143,39 @@ public class TrustedContactsActivity extends AppCompatActivity {
                 tvEmpty.setVisibility(TextView.VISIBLE);
             }
         }
+    }
+
+    private void toggleSelectAll() {
+        if (items.isEmpty()) return;
+        boolean allSelected = trustedNumbers.containsAll(getAllNumbers());
+        if (allSelected) {
+            trustedNumbers.clear();
+            trustedNames.clear();
+        } else {
+            for (TrustedContactAdapter.ContactItem item : items) {
+                trustedNumbers.add(item.number);
+                String safeName = item.name == null ? "" : item.name.trim().toLowerCase();
+                if (!safeName.isEmpty()) {
+                    trustedNames.add(safeName);
+                }
+            }
+        }
+        FirebaseHelper.saveTrustedContacts(this, trustedNumbers, trustedNames);
+        adapter.notifyDataSetChanged();
+        updateSelectAllLabel();
+    }
+
+    private java.util.Set<String> getAllNumbers() {
+        java.util.Set<String> numbers = new java.util.HashSet<>();
+        for (TrustedContactAdapter.ContactItem item : items) {
+            numbers.add(item.number);
+        }
+        return numbers;
+    }
+
+    private void updateSelectAllLabel() {
+        if (btnSelectAll == null) return;
+        boolean allSelected = !items.isEmpty() && trustedNumbers.containsAll(getAllNumbers());
+        btnSelectAll.setText(allSelected ? R.string.trusted_contacts_clear_all : R.string.trusted_contacts_select_all);
     }
 }

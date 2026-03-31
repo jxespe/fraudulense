@@ -51,16 +51,27 @@ public class ScanFragment extends Fragment {
                 return;
             }
 
-            boolean scam = ScamDetector.isScam(requireContext(), txt);
+            boolean localScam = ScamDetector.isScam(requireContext(), txt);
             cardResult.setVisibility(View.VISIBLE);
 
-            if (scam) {
+            if (localScam) {
                 tvResultTitle.setText(getString(R.string.result_scam));
                 tvResultSummary.setText("⚠️ This message contains suspicious indicators. Proceed with caution.");
             } else {
                 tvResultTitle.setText(getString(R.string.result_safe));
-                tvResultSummary.setText("✅ No immediate scam indicators found.");
+                tvResultSummary.setText("✅ No immediate scam indicators found. Checking cloud...");
             }
+
+            ScamDetector.checkHybrid(requireContext(), txt, (isScam, score, source) -> {
+                if (!"cloud".equals(source)) return;
+                if (isScam) {
+                    tvResultTitle.setText(getString(R.string.result_scam));
+                    tvResultSummary.setText("⚠️ Cloud verification flagged this as a possible scam.");
+                } else if (!localScam) {
+                    tvResultTitle.setText(getString(R.string.result_safe));
+                    tvResultSummary.setText("✅ Cloud verification found no scam indicators.");
+                }
+            });
         });
 
         btnReport.setOnClickListener(x -> handleReport());

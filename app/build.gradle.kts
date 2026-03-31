@@ -16,6 +16,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "CLOUD_SCAM_ENDPOINT",
+            "\"https://asia-southeast1-fraudulense.cloudfunctions.net/scoreScamText\""
+        )
     }
 
     buildTypes {
@@ -35,6 +40,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     packaging {
@@ -61,6 +67,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-messaging")
     
     // ✅ Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")

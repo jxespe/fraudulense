@@ -9,8 +9,15 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
+        android:name=".MyApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -71,7 +78,15 @@
             android:exported="false" />
 
         <activity
+            android:name=".activities.ResetPasswordOtpActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".activities.RegisterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.EmailEntryActivity"
             android:exported="false" />
 
         <activity
@@ -93,7 +108,16 @@
         <!-- Main -->
         <activity
             android:name=".activities.MainActivity"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <action android:name="android.intent.action.CALL" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+        </activity>
 
         <!-- Admin -->
         <activity
@@ -113,6 +137,11 @@
         <!-- Scam Messages -->
         <activity
             android:name=".activities.ScamMessagesActivity"
+            android:exported="false" />
+
+        <!-- Report Details -->
+        <activity
+            android:name=".activities.DetailsActivity"
             android:exported="false" />
 
         <!-- Trusted Contacts -->
@@ -146,6 +175,12 @@
         <activity
             android:name=".activities.ReportsActivity"
             android:exported="false" />
+        <activity
+            android:name=".activities.CommunityReportsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.FraudPreventionTipsActivity"
+            android:exported="false" />
 
         <receiver
             android:name=".receivers.SmsReceiver"
@@ -155,10 +190,49 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".receivers.CallStateReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".services.FrauduCallScreeningService"
+            android:permission="android.permission.BIND_SCREENING_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".services.CallSpeechService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <service
+            android:name=".services.FrauduInCallService"
+            android:exported="true"
+            android:permission="android.permission.BIND_INCALL_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.InCallService" />
+            </intent-filter>
+        </service>
+
         <!-- Settings -->
         <activity
             android:name=".activities.SettingsActivity"
             android:exported="false" />
+
+        <service
+            android:name=".services.FcmService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
